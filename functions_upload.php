@@ -71,7 +71,14 @@ function klasifikasiAkun(string $nama_akun): array {
     elseif (in_array($kategori, $operasi_keluar)) $arus_kas = 'arus_kas_operasi_keluar';
     else $arus_kas = 'abaikan';
 
-    return ['kategori' => $kategori, 'arus_kas' => $arus_kas];
+    // Auto Jenis (Standard Accounting)
+    $jenis = 'DEBIT'; // Default
+    $kredit_rules = ['utang', 'utang_bank', 'modal', 'peredaran_usaha', 'pendapatan_lain', 'persediaan_akhir'];
+    if (in_array($kategori, $kredit_rules)) {
+        $jenis = 'KREDIT';
+    }
+
+    return ['kategori' => $kategori, 'arus_kas' => $arus_kas, 'jenis' => $jenis];
 }
 
 /**
@@ -462,7 +469,7 @@ function processUploadData(PDO $db, string $modul, string $npwp, string $tahun, 
                 
                 $stmt->execute([
                     $npwp, $itemTahun, $data[$kodeIdx], $data[$namaIdx] ?? '',
-                    strtoupper($data[$jnsIdx] ?? 'DEBIT'), 
+                    $klas['jenis'], 
                     str_replace([',', ' '], '', $data[$nomIdx] ?? 0),
                     $klas['kategori'], $klas['arus_kas']
                 ]);

@@ -46,19 +46,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Gunakan manual dari form jika ada, jika tidak otomatis
             $kategori_akun = $_POST['kategori_akun'] ?? null;
             $kategori_arus_kas = $_POST['kategori_arus_kas'] ?? null;
+            $jenis_pilihan = $_POST['jenis'] ?? null;
 
-            if (empty($kategori_akun) || empty($kategori_arus_kas)) {
+            if (empty($kategori_akun) || empty($kategori_arus_kas) || empty($jenis_pilihan)) {
                 $klas = klasifikasiAkun($nama);
-                $kategori_akun = $klas['kategori'];
-                $kategori_arus_kas = $klas['arus_kas'];
+                $kategori_akun = $kategori_akun ?: $klas['kategori'];
+                $kategori_arus_kas = $kategori_arus_kas ?: $klas['arus_kas'];
+                $jenis_pilihan = $jenis_pilihan ?: $klas['jenis'];
             }
 
             if (empty($id)) {
                 $sql = "INSERT INTO mapping_akun (npwp, tahun, kode_akun, nama_akun, jenis, nominal, kategori_akun, kategori_arus_kas) VALUES (?,?,?,?,?,?,?,?)";
-                $db->prepare($sql)->execute([$npwp_aktif, $tahun_input, $kode, $nama, $jenis, $nominal, $kategori_akun, $kategori_arus_kas]);
+                $db->prepare($sql)->execute([$npwp_aktif, $tahun_input, $kode, $nama, $jenis_pilihan, $nominal, $kategori_akun, $kategori_arus_kas]);
             } else {
                 $sql = "UPDATE mapping_akun SET kode_akun=?, nama_akun=?, jenis=?, nominal=?, kategori_akun=?, kategori_arus_kas=?, tahun=? WHERE id=?";
-                $db->prepare($sql)->execute([$kode, $nama, $jenis, $nominal, $kategori_akun, $kategori_arus_kas, $tahun_input, $id]);
+                $db->prepare($sql)->execute([$kode, $nama, $jenis_pilihan, $nominal, $kategori_akun, $kategori_arus_kas, $tahun_input, $id]);
             }
             header("Location: $current_file?npwp=$npwp_aktif&tahun=$tahun_input&status=success");
             exit;
