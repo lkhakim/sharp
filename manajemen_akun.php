@@ -484,57 +484,25 @@ $arus_kas_opts = ['arus_kas_investasi', 'arus_kas_pendanaan', 'arus_kas_operasi_
 
     const aiFile = document.getElementById('aiFile');
     if (aiFile) {
-        aiFile.onchange = async function(e) {
-            const file = e.target.files[0];
-            if(!file) return;
-
-            document.getElementById('aiUploadStep').style.display = 'none';
-            document.getElementById('aiLoading').style.display = 'block';
-
-            const reader = new FileReader();
-            reader.onload = async function() {
-                const prompt = `Ekstrak data Trial Balance dari teks/dokumen ini. 
-                Output: JSON ARRAY OF OBJECTS dengan field: kode_akun, nama_akun, jenis (DEBIT/KREDIT), nominal.
-                HANYA KEMBALIKAN JSON.`;
-
-                try {
-                    const apiKey = ""; 
-                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                    });
-                    
-                    const result = await response.json();
-                    let jsonText = result.candidates[0].content.parts[0].text;
-                    jsonText = jsonText.replace(/```json/g, '').replace(/```/g, '');
-                    const data = JSON.parse(jsonText);
-
-                    const tbody = document.getElementById('aiResultBody');
-                    tbody.innerHTML = '';
-                    data.forEach(item => {
-                        tbody.innerHTML += `
-                            <tr>
-                                <td>${item.kode_akun}</td>
-                                <td>${item.nama_akun}</td>
-                                <td>${item.jenis}</td>
-                                <td class="text-end">${Number(item.nominal).toLocaleString('id-ID')}</td>
-                            </tr>
-                        `;
-                    });
-
-                    document.getElementById('ai_data_json').value = JSON.stringify(data);
-                    document.getElementById('aiLoading').style.display = 'none';
-                    document.getElementById('aiResultStep').style.display = 'block';
-                    lucide.createIcons();
-                } catch (err) {
-                    alert("AI Gagal memproses dokumen.");
-                    location.reload();
-                }
-            };
-            reader.readAsText(file);
-        };
+        // ... existing aiFile logic ...
     }
+
+    // Auto-detect classification
+    $('#f_nama').on('blur', function() {
+        const nama = $(this).val();
+        if (nama.length > 3) {
+            $.get('api/api_klasifikasi.php', { nama: nama }, function(data) {
+                if (data.kategori && !$('#f_kategori').val()) $('#f_kategori').val(data.kategori);
+                if (data.arus_kas && !$('#f_arus_kas').val()) $('#f_arus_kas').val(data.arus_kas);
+                if (data.jenis && !$('#f_jenis').val()) $('#f_jenis').val(data.jenis);
+            });
+        }
+    });
+</script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // Re-initialize Lucide after dynamic content (if needed)
+    $(document).ajaxStop(function() { lucide.createIcons(); });
 </script>
 </body>
 </html>
