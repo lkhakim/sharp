@@ -492,10 +492,10 @@ $arus_kas_opts = ['arus_kas_investasi', 'arus_kas_pendanaan', 'arus_kas_operasi_
         const nama = $(this).val();
         if (nama.length > 3) {
             $.get('api/api_klasifikasi.php', { nama: nama }, function(data) {
-                if (data.kategori && !$('#f_kategori').val()) $('#f_kategori').val(data.kategori);
-                if (data.arus_kas && !$('#f_arus_kas').val()) $('#f_arus_kas').val(data.arus_kas);
-                if (data.jenis && !$('#f_jenis').val()) $('#f_jenis').val(data.jenis);
-                if (data.kode_suggest && !$('#f_kode').val()) $('#f_kode').val(data.kode_suggest);
+                if (data.kategori) $('#f_kategori').val(data.kategori);
+                if (data.arus_kas) $('#f_arus_kas').val(data.arus_kas);
+                if (data.jenis) $('#f_jenis').val(data.jenis);
+                if (data.kode_suggest) $('#f_kode').val(data.kode_suggest);
             });
         }
     });
