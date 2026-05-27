@@ -47,12 +47,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $kategori_akun = $_POST['kategori_akun'] ?? null;
             $kategori_arus_kas = $_POST['kategori_arus_kas'] ?? null;
             $jenis_pilihan = $_POST['jenis'] ?? null;
+            $kode = !empty($kode) && $kode !== "-- Otomatis --" ? $kode : null;
 
-            if (empty($kategori_akun) || empty($kategori_arus_kas) || empty($jenis_pilihan)) {
+            if (empty($kategori_akun) || empty($kategori_arus_kas) || empty($jenis_pilihan) || empty($kode)) {
                 $klas = klasifikasiAkun($nama);
                 $kategori_akun = $kategori_akun ?: $klas['kategori'];
                 $kategori_arus_kas = $kategori_arus_kas ?: $klas['arus_kas'];
                 $jenis_pilihan = $jenis_pilihan ?: $klas['jenis'];
+                
+                // Fallback untuk kode
+                if (empty($kode)) {
+                    $mapping = [
+                        'kas' => '1-1000', 'piutang' => '1-2000', 'aset_lancar' => '1-3000',
+                        'aset_tetap' => '1-4000', 'aset_tidak_berwujud' => '1-5000',
+                        'utang' => '2-1000', 'utang_bank' => '2-2000',
+                        'modal' => '3-1000',
+                        'peredaran_usaha' => '4-1000', 'pendapatan_lain' => '4-2000',
+                        'pembelian' => '5-1000', 'beban_gaji' => '6-1000', 'beban_usaha' => '6-2000', 'beban_lain' => '6-3000',
+                        'penyusutan' => '6-4000'
+                    ];
+                    $kode = $mapping[$kategori_akun] ?? '9-9999';
+                }
             }
 
             if (empty($id)) {
@@ -229,7 +244,7 @@ try {
                         </div>
                        <div class="mb-3">
                             <label class="form-label">Kode Akun</label>
-                            <input type="text" name="kode_akun" id="f_kode" class="form-control form-control-sm" value="-- Otomatis --" required placeholder="Cth: 1-1100">
+                            <input type="text" name="kode_akun" id="f_kode" class="form-control form-control-sm"  placeholder="-- Otomatis --">
                         </div>
 <?php 
 // Ambil aturan kategori dari fungsi klasifikasiAkun secara dinamis untuk dropdown
