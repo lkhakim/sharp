@@ -224,15 +224,13 @@ try {
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Kode Akun</label>
-                            <input type="text" name="kode_akun" id="f_kode" class="form-control form-control-sm" required placeholder="Cth: 1-1100">
-                        </div>
-
-                        <div class="mb-3">
                             <label class="form-label">Nama Akun</label>
                             <input type="text" name="nama_akun" id="f_nama" class="form-control form-control-sm" required placeholder="Cth: KAS DAN BANK">
                         </div>
-
+                       <div class="mb-3">
+                            <label class="form-label">Kode Akun</label>
+                            <input type="text" name="kode_akun" id="f_kode" class="form-control form-control-sm" value="-- Otomatis --" required placeholder="Cth: 1-1100">
+                        </div>
 <?php 
 // Ambil aturan kategori dari fungsi klasifikasiAkun secara dinamis untuk dropdown
 $rules = [
@@ -280,6 +278,7 @@ $arus_kas_opts = ['arus_kas_investasi', 'arus_kas_pendanaan', 'arus_kas_operasi_
                             <div class="col-6">
                                 <label class="form-label">Jenis</label>
                                 <select name="jenis" id="f_jenis" class="form-select form-select-sm">
+                                    <option value="">-- Otomatis --</option>
                                     <option value="DEBIT">DEBIT</option>
                                     <option value="KREDIT">KREDIT</option>
                                 </select>
@@ -495,7 +494,7 @@ $arus_kas_opts = ['arus_kas_investasi', 'arus_kas_pendanaan', 'arus_kas_operasi_
                 if (data.kategori) $('#f_kategori').val(data.kategori);
                 if (data.arus_kas) $('#f_arus_kas').val(data.arus_kas);
                 if (data.jenis) $('#f_jenis').val(data.jenis);
-                if (data.kode_suggest) $('#f_kode').val(data.kode_suggest);
+                if (data.kode_suggest && !$('#f_kode').val()) $('#f_kode').val(data.kode_suggest);
             });
         }
     });
