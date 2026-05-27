@@ -223,6 +223,28 @@ try {
                             <input type="text" name="nama_akun" id="f_nama" class="form-control form-control-sm" required placeholder="Cth: KAS DAN BANK">
                         </div>
 
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label">Kategori Akun</label>
+                                <select name="kategori_akun" id="f_kategori" class="form-select form-select-sm">
+                                    <option value="Aset">Aset</option>
+                                    <option value="Kewajiban">Kewajiban</option>
+                                    <option value="Ekuitas">Ekuitas</option>
+                                    <option value="Pendapatan">Pendapatan</option>
+                                    <option value="Beban">Beban</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Kategori Arus Kas</label>
+                                <select name="kategori_arus_kas" id="f_arus_kas" class="form-select form-select-sm">
+                                    <option value="Operasi">Operasi</option>
+                                    <option value="Investasi">Investasi</option>
+                                    <option value="Pendanaan">Pendanaan</option>
+                                    <option value="Abaikan">Abaikan</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <div class="row g-2 mb-4">
                             <div class="col-6">
                                 <label class="form-label">Jenis</label>
@@ -395,6 +417,8 @@ try {
         document.getElementById('f_tahun').value = data.tahun;
         document.getElementById('f_kode').value = data.kode_akun;
         document.getElementById('f_nama').value = data.nama_akun;
+        document.getElementById('f_kategori').value = data.kategori_akun;
+        document.getElementById('f_arus_kas').value = data.kategori_arus_kas;
         document.getElementById('f_jenis').value = data.jenis;
         document.getElementById('f_nominal').value = data.nominal;
         window.scrollTo({ top: 0, behavior: 'smooth' });
