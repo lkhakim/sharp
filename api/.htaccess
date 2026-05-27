@@ -1,0 +1,7 @@
+RewriteEngine On
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^(.*)$ $1.php [L]
+# Mengarahkan format /api/benchmark/{kode} ke file api_benchmark.php
+RewriteRule ^api/benchmark/([0-9A-Za-z]+)$ api_benchmark.php?klu=$1 [L,QSA]

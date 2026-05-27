@@ -1,0 +1,555 @@
+Refactoring manajemen upload telah selesai dilakukan dengan fokus pada sentralisasi logika dan penambahan dukungan format Excel (.xlsx).
+
+  Perubahan yang Dilakukan:
+   1. Sentralisasi Logika (functions_upload.php):
+       * Membuat file utilitas baru yang berisi fungsi parseCSV() dan parseExcel().
+       * Membuat fungsi processUploadData() yang menangani routing data ke berbagai tabel database (mutasi_bank, faktur_pajak, bukti_potong).
+       * Memindahkan fungsi autoKategorisasi() ke utilitas pusat agar konsisten di seluruh modul.
+   2. Dukungan Excel (.xlsx):
+       * Mengimplementasikan parser XLSX minimalis menggunakan ZipArchive dan SimpleXML (bawaan PHP) tanpa memerlukan library eksternal yang berat.
+       * Sistem sekarang secara otomatis mendeteksi ekstensi file dan memprosesnya sesuai format.
+   3. Pembaruan Modul Manajemen:
+       * manajemen_bank.php: Logika impor yang sebelumnya panjang telah disederhanakan. Modal upload kini menerima file .csv dan .xlsx.
+       * manajemen_faktur.php: Sekarang mendukung impor faktur dari file Excel dengan pemetaan kolom yang lebih cerdas.
+  Cara Penggunaan:
+   * Pada setiap modul (Bank, Faktur, Bupot), Anda sekarang dapat memilih file .xlsx secara langsung melalui tombol Import.
+   * Pastikan baris pertama file Excel adalah Header (contoh: tanggal, keterangan, nominal untuk bank; atau no_faktur, dpp, ppn untuk faktur).
+   * Sistem akan melakukan pemetaan kolom secara otomatis berdasarkan nama header tersebut.
+
+  Aplikasi sekarang lebih rapi, modular, dan memudahkan user yang memiliki data dalam format Excel murni.
+
+  ===================================================================================================
+
+  ✦ Saya telah membuatkan template data dummy untuk semua modul upload, baik dalam format CSV maupun XLS. Selain menyediakan file fisik, saya juga telah
+  memperbarui sistem pengunduhan template agar dapat dilakukan secara dinamis melalui aplikasi.
+
+  1. File Template Tersedia (Folder uploads/):
+  Saya telah membuat 3 file CSV dasar dengan data dummy sebagai referensi:
+   * uploads/template_bank.csv: Template mutasi rekening bank (Tanggal, Keterangan, Nominal, dll).
+   * uploads/template_faktur.csv: Template e-Faktur Pajak (No Faktur, Lawan Transaksi, DPP, PPN).
+   * uploads/template_bupot.csv: Template Bukti Potong PPh (Kode Objek, NPWP Lawan, Nilai PPh).
+
+  2. Fitur Unduh Template Dinamis:
+  Saya telah memperbarui download_template.php sehingga user bisa mengunduh template terbaru langsung dari browser dengan format yang diinginkan:
+   * CSV: download_template.php?type=bank&format=csv
+   * Excel (XLS): download_template.php?type=bank&format=xls
+
+  3. Struktur Header yang Didukung:
+  Untuk memastikan upload berhasil, pastikan file Anda memiliki header berikut:
+
+  ┌────────┬─────────────────────────────────────────────────────────────────────────────────┐
+  │ Modul  │ Header Wajib                                                                    │
+  ├────────┼─────────────────────────────────────────────────────────────────────────────────┤
+  │ Bank   │ tanggal, keterangan, jenis (DEBIT/KREDIT), nominal, saldo, kategori             │
+  │ Faktur │ jenis_faktur, no_faktur, tgl_faktur, npwp_lawan, nama_lawan, dpp, ppn           │
+  Perubahan Teknis:
+   * functions_upload.php: Menambahkan fungsi downloadExcelTemplate untuk menghasilkan file Excel (XML Spreadsheet) secara instan tanpa library tambahan.
+   * Sentralisasi: Semua template kini merujuk pada definisi yang sama di download_template.php untuk menjaga konsistensi antara apa yang diunduh user dan apa
+     yang diproses oleh sistem upload.
+
+  Sekarang Anda bisa mencoba mengunggah file Excel murni (.xlsx) hasil ekspor dari sistem lain ke dalam modul Bank, Faktur, atau Bupot!
+
+  ==================================================================================================================
+
+  
+✦ Saya telah menambahkan tombol Unduh Template (dalam format CSV dan XLS) ke semua modul yang memiliki fitur upload/impor data. Hal ini bertujuan untuk
+  memudahkan user menyesuaikan format data sebelum diunggah ke sistem.
+
+  Perubahan Utama:
+   1. Modul Bank (manajemen_bank.php):
+       * Menambahkan link unduh template di dalam modal Import File Rekening Bank.
+   2. Modul Faktur (manajemen_faktur.php):
+       * Menambahkan link unduh template di dalam modal Import File e-Faktur.
+   3. Modul Bukti Potong (manajemen_bupot.php):
+       * Menambahkan link unduh template di dalam modal Import File Bukti Potong.
+   4. Modul Setoran Pajak (manajemen_setoran.php):
+       * Menambahkan link unduh template di dalam dropdown menu Import dan di dalam modal Import CSV Setoran.
+   5. Modul SPT Tahunan (manajemen_spt.php):
+       * Meskipun belum memiliki fitur upload CSV langsung, saya telah menambahkan tombol Template di bagian header sebagai persiapan data atau referensi
+         pengisian manual.
+
+  Detail Visual:
+   * Setiap tombol unduh menggunakan ikon yang sesuai (CSV/XLS) dan diletakkan secara kontekstual di dalam area upload agar tidak membingungkan user.
+   * Link unduh mengarah ke download_template.php yang secara dinamis menghasilkan file berdasarkan tipe modul dan format yang diminta.
+
+  Kini user dapat dengan mudah mendapatkan contoh format data yang benar langsung dari interface aplikasi sebelum melakukan proses upload. Apakah ada modul lain
+  yang perlu ditambahkan fitur serupa? 
+
+  ====================================================================================
+
+  
+✦ Refactoring UI/UX untuk modul Manajemen Setoran dan Manajemen Akun telah selesai dilakukan agar selaras dengan modul lainnya (Bank, Faktur, Bupot).
+
+  Perubahan Utama:
+   1. Konsistensi Layout:
+       * Menggunakan pendekatan Split Layout (4/8): Form input di sisi kiri dan Tabel data di sisi kanan.
+       * Mendukung mode Sidebar-Mini dan navigasi terpadu.
+       * Gaya kartu (cards), tombol, dan lencana (badges) kini identik dengan modul manajemen lainnya.
+   2. Pemetaan Data & Database:
+       * manajemen_setoran.php: Form dan list kini mencakup kolom ntpn, jenis_pajak, map, kjs, tgl_setor, dan nilai_setoran sesuai tabel setoran_pajak.
+       * manajemen_akun.php: Form dan list mencakup kode_akun, nama_akun, jenis, nominal, serta menampilkan otomatis kategori_akun dan kategori_arus_kas hasil
+         klasifikasi sistem.
+   3. Integrasi Upload Central:
+       * Kedua modul kini menggunakan utilitas pusat di functions_upload.php.
+       * Mendukung format CSV dan Excel (.xlsx/.xls) dengan pemetaan header otomatis.
+  Detail Teknis:
+   * Sentralisasi Logika: Fungsi klasifikasiAkun (untuk Akun) dan validasiSetoran (untuk Setoran) telah diintegrasikan ke dalam proses upload massal agar data
+     yang diimpor tetap memiliki kategori yang akurat secara otomatis.
+   * Template Dinamis: download_template.php diperbarui untuk menyediakan file contoh yang sesuai dengan struktur kolom terbaru kedua modul ini.
+
+  Sekarang seluruh modul manajemen data dalam aplikasi SHARP memiliki pengalaman pengguna yang seragam dan lebih efisien. Apakah ada bagian lain yang ingin Anda
+  sesuaikan?
+
+=================================================================================================================
+
+✦ Pesan error tersebut muncul karena sistem pendeteksi format Excel sebelumnya terlalu kaku. File .xls yang dihasilkan oleh sistem (via tombol Unduh Template)
+  sebenarnya berbasis XML Spreadsheet 2003 agar bisa dibuat dengan cepat tanpa library tambahan, namun terkadang pembaca file PHP gagal mengenali "identitas"
+  file tersebut jika header XML-nya tidak persis sama.
+
+  Perbaikan yang Dilakukan:
+   1. Pendeteksian XML Lebih Luwes:
+       * Sistem sekarang mencari namespace standard Excel (schemas-microsoft-com:office:spreadsheet) di dalam file alih-alih mencari tag pembuka yang spesifik.
+         Ini memastikan file template yang Anda unduh pasti bisa diunggah kembali tanpa error.
+   2. Dukungan Namespace Default:
+       * Menambahkan dukungan untuk file Excel XML yang tidak menggunakan awalan ss: pada setiap tag-nya (sering terjadi jika file disimpan ulang oleh aplikasi
+         spreadsheet berbeda).
+  Rekomendasi:
+   * Gunakan Template: Jika ingin menggunakan format .xls, pastikan menggunakan file yang diunduh dari tombol XLS di aplikasi.
+   * Format .xlsx: Untuk file buatan sendiri atau ekspor dari sistem lain, sangat disarankan menggunakan format .xlsx karena lebih stabil dan didukung secara
+     native oleh parser ZIP di server.
+
+  Silakan coba unggah kembali file template .xls Anda. Sekarang seharusnya sudah dapat diproses dengan benar oleh sistem.
+
+  ==================================================================================================
+
+  ✦ Penyebab data tidak masuk ke database meskipun ada pesan "berhasil upload" telah ditemukan dan diperbaiki. Masalah ini terjadi karena sistem pemetaan kolom
+  (header) terlalu kaku, sehingga jika ada perbedaan kecil dalam penulisan header (misal: "kode" vs "kode_akun"), baris data akan dilewati secara diam-diam.
+
+  Perbaikan yang Dilakukan:
+   1. Pemetaan Kolom Fleksibel (Flexible Header Matching):
+       * Sistem sekarang mampu mengenali kolom meskipun ada perbedaan penggunaan spasi, underscore (_), atau huruf besar/kecil.
+       * Contoh: Kolom Kode Akun, kode_akun, dan KODEAKUN kini akan dikenali sebagai kolom yang sama.
+   2. Validasi Baris Kosong:
+       * Sistem akan secara cerdas mengabaikan baris yang benar-benar kosong di dalam file Excel/CSV.
+   3. Pencegahan "Silent Success":
+       * Jika sistem selesai membaca file tapi nol (0) data yang berhasil dimasukkan (misal karena salah format kolom total), sistem kini akan membatalkan
+         transaksi dan menampilkan pesan error: "Tidak ada data yang valid untuk diproses". Ini mencegah user mengira upload berhasil padahal data tidak masuk.
+  Tips Agar Upload Selalu Berhasil:
+   * Gunakan Template yang disediakan oleh aplikasi (tombol XLS/CSV).
+   * Jangan mengubah nama header di baris pertama file.
+   * Jika menggunakan file sendiri, pastikan kolom wajib (seperti ntpn untuk setoran atau kode_akun untuk akun) tersedia dan terisi.
+
+  Silakan coba unggah kembali file Anda. Jika masih ada masalah, sistem kini akan memberikan pesan error yang jauh lebih spesifik untuk membantu Anda
+  memperbaikinya.
+=======================================================================================================
+✦ Logika fallback tahun telah berhasil diimplementasikan di seluruh modul upload. Sekarang, sistem akan bekerja dengan aturan prioritas sebagai berikut:
+
+   1. Prioritas 1 (Kolom di File): Jika di dalam file Excel/CSV terdapat kolom tahun (atau year) dan nilainya tidak kosong, maka sistem akan menggunakan tahun
+      tersebut untuk setiap barisnya.
+   2. Prioritas 2 (Parameter Aplikasi): Jika kolom tahun tidak ditemukan di dalam file, sistem akan secara otomatis menggunakan Tahun Pajak yang sedang Anda
+      pilih di interface aplikasi (parameter ?tahun=...).
+   3. Khusus Modul Faktur: Sistem akan mencoba mengambil tahun dari tanggal_faktur terlebih dahulu sebelum menggunakan parameter aplikasi, agar data lebih
+      akurat sesuai dokumen sumber.
+
+  Perbaikan Tambahan:
+   * Pengecekan Index Aman: Memperbaiki cara sistem membaca kolom tahun agar tidak menyebabkan peringatan (warning) PHP jika kolom tersebut absen.
+   * Konsistensi: Aturan ini kini berlaku seragam untuk semua modul (Bank, Faktur, Bupot, Setoran, dan Akun).
+
+  Dengan pembaruan ini, Anda tidak wajib menyertakan kolom tahun di setiap file upload selama Anda sudah memilih Tahun Pajak yang sesuai di dashboard/menu
+  manajemen. Silakan dicoba kembali!
+
+  =================================================================================================
+
+  ✦ Modul Upload Data ILAP (Data Pihak Ketiga/Rekening Koran) telah berhasil dibuat dan diintegrasikan ke dalam sistem SHARP. Berikut adalah detail
+  implementasinya:
+
+  1. Pembaruan Database (database_schema.sql)
+  Menambahkan tabel data_ilap dengan struktur sesuai permintaan, termasuk indeks untuk NPWP dan Tahun guna optimasi performa. Saya juga menambahkan tabel
+  setoran_pajak yang sebelumnya belum tercatat di file skema.
+
+  2. Fitur Klasifikasi Otomatis (functions_upload.php)
+  Menambahkan fungsi klasifikasiIlap() yang secara cerdas mengelompokkan data berdasarkan kata kunci di kolom keterangan:
+   * INCOME: Gaji, bonus, tunjangan, penghasilan, penjualan, dll.
+   * COST: Biaya, tagihan, beli, bayar, beban, dll.
+   * ASSET: Investasi, tabungan, mobil, tanah, aktiva, dll.
+   * LIABILITY: Utang, pinjaman, kredit, angsuran, dll.
+   * EQUITY: Modal, saham, equity, ahu, dll.
+  3. Modul Manajemen Baru (manajemen_ilap.php)
+  Dibuat dengan standar UI/UX SHARP terbaru (Sidebar-mini, Split Layout 4/8):
+   * Input Manual: Form di sisi kiri untuk rekam transaksi tunggal.
+   * Upload Bulk: Mendukung file CSV dan Excel (.xlsx/.xls) melalui modal impor.
+   * AI Scanner: Mendukung pembacaan dokumen PDF Rekening Koran secara otomatis menggunakan Gemini AI.
+   * Integrasi Profil: Link akses baru telah ditambahkan pada halaman Profil Wajib Pajak.
+
+  4. Kelola Data Terpusat (kelola_data_upload.php)
+  Modul ini juga telah diperbarui agar Anda dapat mengedit, menghapus, atau melihat daftar seluruh data ILAP yang telah diunggah dalam satu interface yang rapi.
+
+  5. Template Download
+  Tersedia template khusus ILAP di menu unduh, sehingga Anda bisa menyesuaikan format file sebelum melakukan upload massal.
+  ===========================================================================================================
+   Hasil Analisa telah berhasil disimpan dan dashboard laporan sudah dapat diakses. 
+
+  Alur Kerja Mesin Analisa yang telah berjalan:
+   1. Validasi Data: jalankan_analisa.php memastikan semua modul (SPT, Bank, Akun, Bupot, Faktur, Setoran, ILAP) memiliki data sebelum mesin diaktifkan.
+   2. Pemrosesan Analisa (engine_proses.php):
+       * Mengambil data dari seluruh tabel (SQL Query kompleks).
+       * Melakukan kalkulasi ekuivalensi (Perbandingan SPT vs Faktur).
+       * Menghitung estimasi PPh menggunakan fungsi pajak yang telah disesuaikan dengan skema Badan/OP/UMKM.
+       * Melakukan skoring risiko awal.
+       * Menyimpan hasil dalam format JSON di tabel hasil_analisis.
+   3. Visualisasi Hasil (hasil_analisa.php):
+  Langkah selanjutnya yang disarankan:
+   * Perluas Logika Scoring: Saat ini logika skoring masih bersifat dasar (simulasi). Anda dapat menambahkan kriteria lain seperti membandingkan equalisasi
+     lebih detail (Bank vs Penjualan).
+   * Visualisasi Grafik: Anda bisa menggunakan Chart.js di hasil_analisa.php untuk menampilkan visualisasi komposisi pendapatan vs beban atau rasio keuangan
+     dibandingkan dengan Benchmark DJP agar laporan lebih profesional.
+
+  Apakah ada tambahan kriteria perhitungan pajak atau skor risiko yang ingin ditambahkan ke dalam engine tersebut?
+  ==================================================================================================================
+  ✦ Tugas untuk poin 1, 2, dan 3 telah berhasil diselesaikan dengan detail sebagai berikut:
+
+  1. Sinkronisasi Syarat Analisa (jalankan_analisa.php)
+   * Perubahan: Menyamakan logika dengan profil_wp.php. Sekarang analisa dapat dijalankan cukup dengan data SPT Tahunan dan Mapping Akun (Trial
+     Balance).
+   * UI Update: Modul lain (Bank, Faktur, dll) kini ditandai sebagai OPSIONAL. Jika data opsional kosong, sistem akan memberikan catatan bahwa
+     hasil analisa mungkin kurang mendalam, namun tetap mengizinkan proses berlanjut.
+
+  2. Perbaikan Dokumen SP2DK (generate_sp2dk.php)
+   * Skema DB: Memperbaiki query dari tahun_pajak menjadi tahun sesuai struktur tabel asli.
+   * Data Extraction: Mengubah cara pengambilan data. Sistem sekarang mengambil data dari kolom data_json di tabel hasil_analisis, bukan lagi
+     mencoba membaca kolom yang tidak ada di tabel tersebut.
+   * Akurasi: Nilai Omset SPT, Omset Faktur, dan Omset Bank pada draf surat sekarang otomatis terisi berdasarkan hasil kalkulasi terbaru dari
+     mesin analisa.
+
+  3. Penguatan Mesin Analisa (engine_proses.php - Versi 2.0)
+   * Integrasi KLU Benchmark: Menggunakan data dari tabel benchmark_klu untuk mendapatkan Net Profit Margin (NPM) rata-rata industri. Jika
+     margin WP jauh di bawah benchmark, skor risiko akan naik.
+   * Equalisasi Multi-Sumber: Sekarang membandingkan omset SPT dengan nilai tertinggi dari 4 sumber: e-Faktur, Mutasi Bank (Kredit), Bukti
+     Potong (DPP), dan Data ILAP.
+   * Scoring Dinamis:
+       * Gap Omset: +30 poin.
+       * Low Margin (vs Benchmark): +25 poin.
+       * Inkonsistensi Bank: +20 poin.
+       * Indikasi ILAP: +25 poin.
+   * Potensi Pajak: Menghitung estimasi awal potensi PPh berdasarkan gap omset dan gap laba (jauh lebih akurat dibanding sebelumnya yang hanya
+     flat 10%).
+
+  Semua modul sekarang sudah terintegrasi lebih baik. Apakah Anda ingin saya melanjutkan ke perbaikan tampilan dashboard hasil analisa agar
+  tidak lagi berupa format JSON mentah?
+  =====================================================================================================================
+  ✦ Tampilan dashboard hasil analisa pada hasil_analisa.php telah berhasil diperbarui sepenuhnya. Perubahan yang dilakukan meliputi:
+
+   1. Transformasi Visual: Menggantikan tampilan JSON mentah dengan dashboard modern berbasis kartu (cards) yang profesional.
+   2. Risk Indicator: Menampilkan skor risiko dalam lingkaran progres dengan indikator warna (Merah untuk Tinggi, Kuning untuk Sedang, Hijau
+      untuk Rendah).
+   3. Tabel Equalisasi: Menyajikan perbandingan Omset SPT dengan sumber data lain (Faktur, Bank, ILAP) secara berdampingan, lengkap dengan
+      penanda GAP DETECTED jika nilai data eksternal lebih tinggi.
+   4. Analisa Profitabilitas: Visualisasi margin keuntungan aktual dibandingkan dengan Benchmark KLU menggunakan progress bar.
+   5. Integritas Kas: Menampilkan rasio mutasi bank terhadap omset untuk mendeteksi potensi penghasilan yang tidak dilaporkan.
+   6. Catatan Temuan: Daftar indikasi risiko disajikan dalam bentuk poin-poin yang mudah dibaca oleh auditor.
+   7. Data Mentah (JSON): Tetap tersedia namun disembunyikan di bawah tombol "Lihat Data Mentah" untuk kebutuhan audit teknis lebih lanjut.
+
+  Seluruh tugas prioritas (Poin 1, 2, 3, dan pembaruan UI) telah selesai dilakukan. Sistem SHARP sekarang memiliki alur yang solid dari
+  pengumpulan data hingga pelaporan risiko yang komprehensif.
+============================================================================================
+✦ Beberapa perbaikan penting telah dilakukan untuk mengatasi error dan warning yang dilaporkan, serta sinkronisasi skema database terbaru:
+
+  1. Penanganan Error & Warning PHP 8.1+
+   * hasil_analisa.php & generate_sp2dk.php: Menambahkan null coalescing operator (?? '') pada fungsi json_decode. Hal ini mencegah pesan
+     Deprecated saat mencoba memproses data yang belum dianalisis (bernilai null).
+   * hasil_analisa.php: Menambahkan validasi pada bagian indikasi temuan (explode) agar tidak memproses data null.
+
+  2. Sinkronisasi Nama Tabel Validasi Lapangan
+   * generate_sp2dk.php: Mengubah query pencarian data lapangan dari tabel lama audit_lapangan ke tabel baru validasi_lapangan. Ini
+     menyelesaikan masalah Table not found.
+   * api/api_audit_lapangan.php:
+       * Memastikan data disimpan ke tabel validasi_lapangan.
+       * Memperbaiki query UPDATE skor risiko agar menargetkan tabel hasil_analisis (bukan hasil_analisa) dan menggunakan kolom tahun (bukan
+         tahun_pajak).
+
+  3. Standarisasi Kolom Skor Risiko (PENTING)
+   * dashboard.php & monitoring_kolektif.php: Memperbarui query agar menggunakan kolom skor_risiko (sesuai dengan hasil engine terbaru)
+     menggantikan kolom lama skor_final. Hal ini memastikan skor yang muncul di Dashboard utama sinkron dengan yang tampil di halaman Detail
+     Analisa.
+
+  Sistem sekarang seharusnya sudah bebas dari pesan kesalahan tersebut dan data lapangan akan terintegrasi dengan benar ke dalam draf SP2DK.
+  Apakah ada modul lain yang ingin Anda uji?
+  ======================================================================================
+  ✦ Modul laporan telah berhasil diubah dari format draf surat (SP2DK) menjadi format formal Laporan Hasil Analisa Risiko (LHAR) dengan struktur
+  tiga bab sebagai berikut:
+
+   1. BAB I: Profil WP dan Proses Bisnis
+       * Mencakup identitas, tanggal daftar, dan uraian proses bisnis berdasarkan KLU.
+       * Integrasi data hasil kunjungan lapangan (status aktivitas dan koordinat).
+   2. BAB II: Hasil Analisa dan Temuan
+       * Ekualisasi Peredaran Usaha: Tabel perbandingan otomatis antara SPT vs e-Faktur vs Bank vs ILAP.
+       * Benchmarking: Perbandingan NPM aktual dengan rata-rata industri.
+       * Detail Temuan: Daftar ketidakpatuhan yang terdeteksi oleh engine analisa.
+   3. BAB III: Kesimpulan dan Rekomendasi
+       * Penetapan tingkat risiko (Rendah/Sedang/Tinggi) dan skor final.
+       * Rekomendasi tindakan taktis bagi Account Representative (AR) atau Auditor.
+
+  Perubahan Tambahan:
+   * Nama tombol pada halaman hasil analisa telah diubah menjadi "Cetak LHAR".
+   * Judul dokumen dan nomor laporan telah disesuaikan dengan standar formal perpajakan.
+
+  Laporan ini sekarang siap untuk dicetak sebagai dokumen pendukung resmi pengawasan. Apakah ada bagian detail narasi yang ingin Anda sesuaikan
+  lagi?
+  =======================================================================================================================
+  ✦ Halaman validasi_lapangan.php telah berhasil dihubungkan dengan api/api_audit_lapangan.php dengan pembaruan sebagai berikut:
+
+   1. Dinamisasi Data WP: Halaman sekarang secara otomatis mengambil nama WP, koordinat lokasi terdaftar, dan level risiko terbaru berdasarkan
+      parameter npwp dan tahun di URL.
+   2. Integrasi API: Jalur pengiriman data (form submission) telah diarahkan ke folder api/api_audit_lapangan.php untuk pemrosesan geotagging
+      dan checklist validasi.
+  Auditor sekarang dapat melakukan validasi lapangan secara real-time, mengunggah dokumentasi foto ber-GPS, dan hasilnya akan langsung
+  memperbarui skor risiko Wajib Pajak di sistem utama. Apakah Anda ingin mencoba fitur validasi ini untuk salah satu NPWP?
+  ============================================================================================================
+  ✦ Masalah tampilan foto telah diperbaiki dengan mengintegrasikan sistem penyimpanan S3-Compatible Storage (IDCloudHost is3). Sekarang, alur
+  dokumentasi foto tidak lagi disimpan secara lokal di server web, melainkan langsung ke Object Storage yang Anda tentukan.
+
+  Berikut adalah perubahan yang telah diterapkan:
+
+  1. Konfigurasi S3 (config.php)
+  Sistem telah dikonfigurasi untuk terhubung ke endpoint is3.cloudhost.id menggunakan Access Key dan Secret Key yang Anda berikan. Bucket utama
+  yang digunakan adalah sharp.
+
+  2. Mesin Unggah (functions_upload.php & api_audit_lapangan.php)
+   * Menambahkan fungsi uploadToS3() yang menangani proses otentikasi (AWS V4 Signing) secara manual tanpa memerlukan library tambahan
+     (Composer).
+   * API Validasi Lapangan sekarang akan mengunggah foto langsung ke S3 dan menyimpan URL Publik foto tersebut ke dalam database.
+
+  3. Pembaruan Antarmuka (validasi_lapangan.php & profil_wp.php)
+   * Restorasi Foto: Saat membuka kembali halaman validasi, sistem akan mengecek apakah ada URL foto di S3. Jika ada, foto akan ditampilkan
+     sebagai pratinjau.
+  ⚠️ Catatan Keamanan Penting:
+  Saat ini, Access Key dan Secret Key tersimpan di dalam file config.php. Sangat disarankan untuk:
+   1. Memastikan bucket S3 sharp memiliki kebijakan akses (Policy) "Public Read" agar foto bisa tampil di browser melalui tag <img>.
+   2. Jangan membagikan file config.php kepada pihak yang tidak berwenang karena berisi kunci akses penuh ke storage Anda.
+
+  Fitur dokumentasi lapangan sekarang sudah sepenuhnya fungsional dan terintegrasi dengan cloud storage. Apakah Anda ingin mencoba melakukan
+  unggah foto baru untuk verifikasi?
+
+✦ Silakan dicoba! Untuk melakukan verifikasi fitur unggah foto ke S3 (IDCloudHost), Anda dapat mengikuti langkah-langkah berikut:
+
+   1. Buka halaman Profil WP salah satu Wajib Pajak.
+   2. Klik tombol "Validasi Lapangan" (atau melalui tab "Geotagging Lokasi" -> tombol Validasi Lapangan).
+   3. Di halaman Validasi Lapangan:
+       * Klik pada kotak "Foto Lokasi" atau "Foto Kegiatan".
+       * Pilih gambar dari perangkat Anda (jika di HP, Anda bisa langsung mengambil foto kamera).
+       * Tunggu sebentar hingga teks GPS berubah menjadi "Terekam" (berwarna hijau).
+       * Isi beberapa checklist verifikasi dan tambahkan catatan.
+       * Klik "Simpan Hasil Validasi".
+   4. Jika berhasil, sistem akan menampilkan notifikasi sukses dan mengarahkan Anda kembali ke halaman Profil WP.
+   5. Cek tab "Kunjungan Lapangan" yang baru saya tambahkan di Profil WP. Foto tersebut seharusnya sudah tampil di sana (diambil langsung dari
+      server S3 IDCloudHost).
+  Tips Tambahan:
+   * Pastikan koneksi internet stabil saat mengunggah karena file dikirim langsung ke Object Storage.
+   * Jika foto masih tidak muncul setelah simpan, pastikan bucket sharp di IDCloudHost sudah diatur ke akses "Public" atau "Public-Read".
+
+  Saya menunggu kabar dari hasil uji coba Anda! Apakah ada kendala saat mencoba alur ini?
+  ==================================================================================================
+  ✦ Perbaikan menyeluruh telah dilakukan untuk mengatasi masalah tampilan dan kegagalan unggah foto ke S3:
+
+  1. Perbaikan Layout profil_wp.php
+   * HTML Cleanup: Seluruh struktur file telah ditulis ulang untuk memastikan tidak ada tag yang tidak tertutup atau div yang tumpang tindih.
+     Masalah "tampilan kacau" disebabkan oleh duplikasi konten tab pada pembaruan sebelumnya.
+   * Navigasi Tab: Tab "Kunjungan Lapangan" kini berada di urutan kelima secara rapi, dan seluruh konten tab lainnya (Umum, Pemilik, Data
+     Pajak, Geotagging) telah dikembalikan ke fungsi normalnya.
+
+  2. Optimasi Unggah S3 (IDCloudHost)
+   * Path-Style Access: Mengubah metode akses S3 dari Virtual-Hosted ke Path-Style (is3.cloudhost.id/sharp/...). Ini adalah metode yang jauh
+     lebih stabil untuk penyedia Object Storage selain AWS S3 murni.
+   * Izin Publik (ACL): Menambahkan header x-amz-acl: public-read saat proses unggah. Hal ini memastikan foto yang baru diunggah dapat langsung
+  3. Verifikasi Sinkronisasi
+   * Tampilan Foto: Halaman Profil WP kini akan mengambil URL lengkap dari S3. Jika URL tersimpan sebagai relative path, sistem akan otomatis
+     menambahkan prefix endpoint S3 yang benar.
+   * Notifikasi Error: Jika unggah ke S3 gagal, API sekarang akan mengembalikan pesan kesalahan yang spesifik ke layar Anda, bukan lagi gagal
+     secara diam-diam.
+
+  Silakan coba lakukan Validasi Lapangan sekali lagi. Foto seharusnya sekarang tersimpan dengan benar di server IDCloudHost dan langsung muncul
+  di tab "Kunjungan Lapangan" pada Profil WP. Apakah ada bagian lain yang perlu saya cek?
+  ========================================================================================
+  I have successfully refactored engine_proses.php and updated the corresponding analysis view to support the advanced fiscal logic and scoring system you
+  provided.
+
+  Key Refactorings:
+   1. Comprehensive Tax Engine: Integrated the hitungPajakWajar2026 function. This supports automated tax calculations for:
+       * Individual (OP): Progressive rates (5% to 35%) with PTKP deduction.
+       * Corporate (Badan): Standard 22% rate or Pasal 31E facility (11% effective rate) based on turnover thresholds.
+       * UMKM: Automatic 0.5% Final PPh for eligible taxpayers under 4.8B turnover.
+   2. Automated Historical Tracking: Added logic to automatically create and manage tb_saldo_awal. The engine now fetches data from the previous year's
+      bookkeeping to establish starting balances for current year analysis.
+   3. Bookkeeping vs. SPT Reconciliation: Refactored the data gathering logic to compare Trial Balance (Mapping Akun) against SPT Reporting line-by-line,
+      highlighting discrepancies in turnover, HPP, and expenses.
+   4. Advanced Cash Flow & Ratios: Implemented automated Arus Kas (Operating, Investing, Financing) and financial ratio analysis (GPM, OPM, NPM, CTTOR, DER)
+      compared against KLU benchmarks.
+   5. Multi-Dimensional Scoring: Upgraded the scoring algorithm to a 100-point system that factors in:
+       * Tax gaps (Kurang Bayar vs. Wajar).
+       * Reporting inconsistencies.
+       * Cash flow anomalies (e.g., Profit but Negative Operating Cash).
+       * Benchmark deviations.
+   6. Rich JSON Storage & View: Updated the database storage to use a structured JSON format and redesigned hasil_analisa.php to display these detailed metrics
+      through professional visual cards and tables.
+
+  The analysis engine is now significantly more powerful, providing auditors with a deep fiscal perspective on every Wajib Pajak.
+
+
+  Advanced Risk Engine Delivered: Finalized advanced engine integration and verified result visualization.
+
+
+✦ The engine_proses.php has been upgraded to Version 3.0, incorporating the advanced fiscal logic and scoring system.
+
+  Key Upgrades:
+   * Intelligent Tax Calculator: Uses hitungPajakWajar2026 to handle OP progressive rates, Corporate Pasal 31E facilities, and 0.5% UMKM Final tax
+     automatically.
+   * Automatic Balance Tracking: The system now manages tb_saldo_awal by pulling historical data from the previous year's bookkeeping.
+   * Full Reconciliation: Compares Trial Balance vs. SPT data to detect hidden discrepancies.
+   * Deep Financial Analytics: Calculates Arus Kas (Cash Flow) and key ratios (GPM, OPM, NPM, CTTOR, DER) against KLU benchmarks.
+   * Modernized Dashboard: hasil_analisa.php now features visual cards for Tax Estimations, Ratio Integry, and Balance Sheet equality.
+
+  The engine results are stored as a structured JSON object, allowing for high-fidelity data visualization across the entire dashboard.
+  ==========================================================================================================================
+  I have upgraded engine_proses.php to include the comprehensive multi-source data matching logic you requested.
+
+  Key Enhancements:
+   1. Multi-Source Reconciliation: The engine now automatically gathers and compares data from all available sources:
+       * Omzet Matching: SPT vs. Bookkeeping vs. Faktur vs. Bank (Cash In) vs. ILAP vs. Bukti Potong (PPh 22/Final).
+       * Purchases Matching: Bookkeeping vs. Faktur (Masukan) vs. Bank (Cash Out) vs. ILAP (COST).
+       * Balance Sheet Matching: Aset, Utang, and Modal compared between Bookkeeping and ILAP (Data Pihak Ke-3).
+       * Expense Matching: Gaji vs. PPh 21 and Jasa/Sewa vs. PPh 23.
+   2. Gap-Based Correction: The engine identifies the highest discrepancy between these sources for each category and uses it as the basis for risk scoring and
+      potential fiscal corrections.
+   3. Detailed JSON Result: All comparison points, source-specific totals, and calculated gaps are now stored in the data_json field of the hasil_analisis
+      table. This allows for high-fidelity auditing in the dashboard.
+   4. Advanced Scoring: Discrepancies in Omzet and Purchases carry higher risk weight (40 and 20 points respectively), while Balance Sheet mismatches provide a
+      base risk of 15 points.
+
+  The engine is now a fully automated reconciliation platform that provides a "worst-case scenario" risk profile based on the most aggressive data source
+  discovered.
+=======================================================================================================
+✦ The hasil_analisa.php has been fully updated to display the Multi-Source Reconciliation data.
+
+  Enhancements:
+   * Comprehensive Matching Table: Displays Omzet and Purchases side-by-side across SPT, Bookkeeping, Faktur, Bank, ILAP, and Bupot.
+   * Gap Highlighting: Automatically identifies and highlights the Largest Gap in red, serving as the primary evidence for fiscal corrections.
+   * Neraca vs. Big Data: A new section specifically for matching Aset, Utang, and Modal against external ILAP data.
+   * Expense Auditing: Dedicated visual cards comparing Gaji vs. PPh 21 and Jasa vs. PPh 23.
+
+  Auditors can now see the exact source of every risk discrepancy, providing a high-signal audit trail for further investigation.
+===========================================================================================================================
+
+  Key Enhancements:
+   1. Tax Simulation Dashboard: Added a comprehensive side-by-side view comparing bookkeeping figures (Penjualan, HPP, Laba Kotor, etc.) with the simulated tax
+      calculation. This includes:
+       * Bookkeeping Trail: From Gross Profit to Net Profit.
+       * Fiscal Walkthrough: Derivation of Penghasilan Kena Pajak (PKP).
+       * Tax Credit Analysis: Breakdown of Withholding Tax (Bupot) and PPh 25 vs. final PPh 29 payments.
+       * Audit Gap: Clear highlighting of the Potensi Kurang Bayar (Audit Gap) as a recommendation for correction.
+   2. Error Prevention: Fixed the Undefined array key "matching" error by adding null-safe checks. The dashboard now gracefully handles older records by
+      notifying the user to "Run Re-analysis" instead of crashing.
+   3. Visual Hierarchy: Redesigned the right column with a consistent visual flow:
+       * Top: Tax Simulation (Primary Focus).
+       * Middle: Multi-Source Matching (Supporting Evidence).
+       * Bottom: Expense Verification (Secondary Check).
+
+  The analysis view now provides a direct, line-by-line comparison between a taxpayer's internal books and the systematic tax logic, making it easier for
+  auditors to justify findings.
+
+
+  Tax Simulation Dashboard Delivered: Finalized tax simulation visualization and verified dashboard backward compatibility.
+
+
+✦ The hasil_analisa.php dashboard has been upgraded to provide a full Tax Simulation vs. Bookkeeping comparison.
+
+  Key Visual Updates:
+   * Audit Simulation: A new primary table that walks through the entire fiscal process—from Penjualan and HPP to Laba Bersih and finally to PPh Terutang.
+   * Credit Reconciliation: Displays a clear breakdown of Bupot (PPh 22/23) and PPh 25 vs. the actual PPh 29 paid, revealing the Audit Gap.
+   * Robust Stability: Fixed the previous "Undefined array key" error. The dashboard is now fully compatible with both old and new analysis records.
+   * Evidence-Based Auditing: The simulation is integrated with the Multi-Source Matching data, providing auditors with a seamless link between discrepancies
+     and final tax impact.
+======================================================================================================================
+I have successfully corrected engine_proses.php and standardized all JSON parameters to strictly follow your reconciliation requirements.
+
+  Standardized Engine Logic (v4.0):
+   1. Multi-Source Data Fetching: The engine now pulls comprehensive data from all available sources: SPT, Mapping Akun (Bookkeeping), Faktur Pajak, Mutasi
+      Bank, Data ILAP, Bukti Potong, and Setoran Pajak.
+   2. Complete Matching Matrix:
+       * Omzet Matching: Compares SPT vs. Bookkeeping vs. Faktur Out vs. Bank In vs. ILAP vs. Bupot (PPh 22 & Final).
+       * Pembelian Matching: Compares Bookkeeping vs. Faktur In vs. Bank Out vs. ILAP Cost.
+       * Balance Sheet Integrity: Cross-references Assets, Liabilities, and Equity between Bookkeeping and external Big Data (ILAP).
+       * Expense Auditing: Reconciles Gaji vs. PPh 21 and Jasa vs. PPh 23.
+   3. Corrected Fiscal Correction:
+       * The engine identifies Gaps (where external sources exceed internal reporting).
+       * These gaps are treated as Positive Fiscal Corrections.
+       * Laba Fiskal Engine = Laba Bersih (Komersial) + Omzet Gap + Gaji Gap + Jasa Gap.
+   4. Standardized JSON Structure:
+       * simulation: Contains all requested parameters: penjualan, hpp, laba_kotor, biaya_operasional, luar_usaha, laba_bersih, laba_fiskal, pkp, pph_wajar,
+         kredit_bupot, pph_25, pph_terutang, and pph_kb_lb.
+       * matching: Full breakdown of source values for each category.
+       * gaps: Calculated maximum discrepancies for audit reference.
+   5. Robust Error Handling: Added explicit floatval() conversions and null-coalescing to prevent future "Undefined array key" errors.
+
+  This ensures that the final dashboard (hasil_analisa.php) will always have access to a consistent and deep set of audit evidence.
+
+
+  Standardized Fiscal Engine Delivered: Finalized standardized engine and verified simulation integrity.
+
+
+✦ The engine_proses.php has been fully corrected to Version 4.0, featuring a standardized JSON output and complete multi-source reconciliation.
+
+  Highlights:
+   * Fiscal Correction Basis: Automatically matches Omzet, Purchases, Assets, Liabilities, Equity, Salaries, and Services across SPT, Bookkeeping, Faktur, Bank,
+     ILAP, and Bupot.
+   * Risk-Adjusted Simulation: Gaps found in external data (like higher Bank In or ILAP Income) are automatically added as positive fiscal corrections to
+     calculate the PPh Terutang (Wajar).
+   * Standardized JSON: The output now includes every parameter you requested—penjualan, hpp, laba_kotor, biaya_operasional, luar_usaha, laba_bersih, pkp, and
+     detailed Tax Credits (Bupot, PPh 25, PPh 29).
+   * Audit-Ready Result: The system provides a clear walkthrough from your internal books to the final potential tax underpayment, with all discrepancies
+     clearly flagged.
+
+===========================================================================================================
+ I have resolved the "no active transaction" error in engine_proses.php and addressed an additional logic bug discovered during the
+  investigation.
+
+  Changes Made:
+
+   1. Fixed Transaction Error:
+       * Added $db->beginTransaction(); at the start of the try block in engine_proses.php. Previously, the script was calling $db->commit()
+         without having started a transaction, which triggered the reported error.
+
+   2. Improved Tax Payment (Setoran) Handling:
+       * Categorization: Refactored the code to correctly categorize tax payments. Previously, the script incorrectly assigned the first record
+         found to both PPh Final and PPh 25. It now iterates through all payment records and sums them based on their type (PPh Final, PPh 25,
+         or PPh 29) or MAP code.
+       * Undefined Variable Fix: Fixed an "Undefined variable" error for $pph29_setor, which was being used in calculations but was never
+         initialized or assigned a value.
+
+   3. Enhanced Error Resilience:
+       * Verified that all other files using transactions (functions_upload.php, ai_pharsing_data.php, and api/api_audit_lapangan.php)
+         correctly call beginTransaction() before commit().
+===============================================================================================================================
+
+I have enhanced hasil_analisa.php to display all relevant components from the analysis JSON and added a dynamic 5-year trend chart.
+
+  Key Enhancements:
+
+   1. Financial Ratios & Benchmark Section:
+       * Added a detailed table for GPM, OPM, NPM, CTTOR, DER, and CR.
+       * Displays WP values vs. Industry Benchmarks with automated status indicators (e.g., "Under Benchmark", "Below Benchmark", "Wajar").
+       * Included technical descriptions for each ratio to help auditors interpret the data.
+
+   2. 5-Year Trend Visualization:
+       * Integrated Google Charts to visualize performance trends.
+       * Added a Dynamic Selector allowing users to switch the chart view between GPM, OPM, NPM, CTTOR, and DER.
+       * The chart compares the WP's historical performance against the industry benchmark over the last 5 years.
+
+   3. Balance Sheet & Cash Flow Summaries:
+       * Kewajaran Saldo Neraca: Displays gaps in Inventory, Accumulated Depreciation, and Cash, highlighting potential manipulations.
+       * Ringkasan Arus Kas: Summarizes Operating, Investing, and Financing cash flows directly from the bookkeeping data.
+
+   4. Data Resilience:
+       * Added a historical data fetcher that retrieves up to 5 years of previous analysis results for the chart.
+       * Included a fallback message if historical data is insufficient for rendering a trend line.
+
+  The results page is now a comprehensive audit dashboard that provides both a "point-in-time" analysis and a historical trend perspective.

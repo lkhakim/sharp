@@ -1,0 +1,33 @@
+/sharp-app (Root Directory)
+│
+├── /api                        # Endpoint khusus untuk pemrosesan data di latar belakang / Mobile API
+│   ├── api_audit_lapangan.php  # Menangani form data & upload foto dari validasi_lapangan
+│   └── api_whatsapp.php        # Menangani pengiriman notifikasi Fonnte WA
+│
+├── /assets                     # File statis UI (Jika Anda ingin mengunduh aset ke server lokal)
+│   ├── /css                    # (Opsional) File CSS kustom
+│   ├── /js                     # (Opsional) File JS kustom
+│   └── /images                 # Logo aplikasi, placeholder gambar, dll
+│
+├── /database                   # File referensi database (Direktori ini BISA dihapus setelah deploy)
+│   └── database_schema.sql     # Skema tabel MySQL (Import file ini ke phpMyAdmin/DBeaver)
+│
+├── /uploads                    # Folder WAJIB untuk menampung file dari pengguna
+│   ├── /audit_lapangan         # Akan terisi otomatis oleh file foto geotagging (.jpg/.png)
+│   └── /dokumen                # Akan terisi file CSV, PDF SPT, Rekening Koran, dll
+│
+├── config.php                  # File Konfigurasi Inti (Koneksi DB, JWT Secret, Fungsi Log)
+├── download_template.php       # Script generator/download template CSV
+├── index.html                  # Halaman Landing / Mobile Dashboard (Entry point alternatif)
+├── login.php                   # Halaman Login & Lupa Password (Entry point utama)
+├── dashboard_manager.php       # Modul Dashboard Eksekutif (Akses: Manager)
+├── monitoring_kolektif.php     # Modul Dashboard Pengawasan (Akses: Auditor/Supervisor)
+├── profil_wp.html              # Antarmuka Profil WP, Tab Pemilik, & Form Upload
+├── kelola_data_upload.php      # Modul CRUD Terpadu (SPT, Bank, Akun, Bupot, Setoran)
+├── upload_handler.php          # Modul Pemroses Unggahan File (AI Importer)
+├── validasi_lapangan.html      # Antarmuka Input Checklist Validasi & Foto Geotagging
+├── jalankan_analisa.php        # Mesin (Engine) Penghitung Ekualisasi & Risiko Pajak
+├── detail_analisa.php          # Dasbor Komprehensif Laporan Hasil Analisa Terpadu
+├── generate_sp2dk.php          # Modul Penerbitan Surat Teguran (SP2DK)
+├── lhp_handler.php             # Modul Pencatatan Laporan Hasil Pemeriksaan (LHP)
+└── manajemen_user.php          # Modul CRUD Pegawai (Akses: Admin)
