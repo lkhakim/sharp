@@ -233,24 +233,45 @@ try {
                             <input type="text" name="nama_akun" id="f_nama" class="form-control form-control-sm" required placeholder="Cth: KAS DAN BANK">
                         </div>
 
+<?php 
+// Ambil aturan kategori dari fungsi klasifikasiAkun secara dinamis untuk dropdown
+$rules = [
+    'piutang'=>['PIUTANG JANGKA PANJANG','BEBAN DIBAYAR DI MUKA','PIUTANG RAGU-RAGU','PIUTANG LAIN-LAIN','PIUTANG USAHA PIHAK YANG MEMPUNYAI HUBUNGAN ISTIMEWA','PIUTANG USAHA PIHAK KETIGA','PIUTANG','BAYAR DIMUKA','UANG MUKA PEMBELIAN','PIUTANG USAHA'],
+    'utang_bank'=>['UTANG BANK','PINJAMAN BANK','HUTANG BANK','HUTANG BUNGA','BAGIAN HUTANG JANGKA PANJANG YANG JATUH TEMPO DALAM TAHUN BERJALAN'],
+    'utang'=>['UTANG','HUTANG','KEWAJIBAN','PINJAMAN','HUTANG USAHA','HUTANG PAJAK','HUTANG DEVIDEN','BIAYA YANG MASIH HARUS DIBAYAR','UANG MUKA PELANGGAN','KEWAJIBAN LANCAR LAINNYA','KEWAJIBAN PAJAK','KEWAJIBAN TIDAK LANCAR LAINNYA'],
+    'pembelian' => ['PEMBELIAN', 'PEMBELIAN BARANG', 'PEMBELIAN BAHAN', 'HARGA POKOK', 'HPP','BELI','BEBAN POKOK PENJUALAN','BEBAN POKOK PRODUKSI'],
+    'persediaan_akhir' => ['PERSEDIAAN AKHIR', 'SALDO AKHIR PERSEDIAAN'],
+    'persediaan_awal' => ['PERSEDIAAN AWAL', 'SALDO AWAL PERSEDIAAN'],
+    'persediaan'=>['PERSEDIAAN'],
+    'aset_tetap'=>['AKTIVA TIDAK LANCAR LAINNYA','AKTIVA TETAP LAINNYA','TANAH DAN BANGUNAN','AKUM. PENYUSUTAN','AKUMULASI PENYUSUTAN','TANAH','BANGUNAN','ASET TETAP','KENDARAAN'],
+    'modal'=>['MODAL','LABA DITAHAN','SAHAM','DEVIDEN','MODAL SAHAM','AGIO','TAMBAHAN MODAL DISETOR','LABA DITAHAN','EKUITAS'],
+    'pendapatan_lain'=>['PENDAPATAN LAIN','JASA GIRO','DILUAR USAHA','PENGHASILAN LAIN','MANFAAT PAJAK','PENGHASILAN/(BEBAN) LAIN','BAGIAN LABA (RUGI) PERUSAHAAN ASOSIASI','PENDAPATAN NON OPERASIONAL','PENDAPATAN BUNGA','PENDAPATAN SEWA','PENDAPATAN ROYALTI','PENDAPATAN DIVIDEN','PENGHASILAN DI LUAR USAHA','PENDAPATAN LUAR USAHA','PENGHASILAN LUAR USAHA'],
+    'peredaran_usaha'=>['JUAL','PENJUALAN','OMSET','PENJUALAN BERSIH','PENJUALAN NETTO','PENJUALAN USAHA','PENJUALAN DAGANG','PENJUALAN PRODUK','PENJUALAN JASA','PENGHASILAN USAHA','PENGHASILAN JASA','PENDAPATAN USAHA','PENDAPATAN JASA','PENGHASILAN'],
+    'beban_lain'=>['BEBAN BUNGA','BEBAN ADM','BEBAN PAJAK','BIAYA ADMINISTRASI','BIAYA ADM','BIAYA BUNGA','BIAYA LUAR USAHA','BEBAN DILUAR USAHA','BEBAN NON OPERASIONAL','BIAYA DILUAR USAHA','BEBAN DILUAR USAHA','PAJAK'],
+    'beban_gaji'=>['GAJI','UPAH','HONOR','BONUS','TUNJANGAN','REMUNERASI','BIAYA KARYAWAN','BEBAN KARYAWAN'],
+    'beban_usaha'=>['BEBAN USAHA','SEWA','LISTRIK','TELEPON','INTERNET','BIAYA','BEBAN UMUM DAN ADMINISTRASI'],
+    'penyusutan'=>['PENYUSUTAN','AMORTISASI','DEPRESIASI'],
+    'koreksi_fiskal_positif'=>['FISKAL POSITIF','KOREKSI PENYUSUTAN','KOREKSI PERSEDIAAN','KOREKSI ASET','KOREKSI AKTIVA','KOREKSI PENDAPATAN','KOREKSI OMSET'],
+    'koreksi_fiskal_negatif'=>['FISKAL NEGATIF','PENGHASILAN FINAL','HIBAH','WARISAN','BUKAN OBJEK PAJAK','PTKP','KOREKSI BIAYA','KOREKSI BEBAN'],
+    'kas'=>['KAS','BANK','KAS DAN SETARA KAS'],
+    'aset_lancar'=>['AKTIVA LANCAR LAINNYA','ASET LANCAR','INVESTASI SEMENTARA'],
+    'aset_tidak_berwujud'=>['AKUM. AMORTISASI','AKUMULASI AMORTISASI','HARTA TIDAK BERWUJUD','AKTIVA PAJAK TANGGUHAN']    
+];
+$arus_kas_opts = ['arus_kas_investasi', 'arus_kas_pendanaan', 'arus_kas_operasi_masuk', 'arus_kas_operasi_keluar', 'abaikan'];
+?>
                         <div class="row g-2 mb-3">
                             <div class="col-6">
                                 <label class="form-label">Kategori Akun</label>
                                 <select name="kategori_akun" id="f_kategori" class="form-select form-select-sm">
-                                    <option value="Aset">Aset</option>
-                                    <option value="Kewajiban">Kewajiban</option>
-                                    <option value="Ekuitas">Ekuitas</option>
-                                    <option value="Pendapatan">Pendapatan</option>
-                                    <option value="Beban">Beban</option>
+                                    <option value="">-- Otomatis --</option>
+                                    <?php foreach(array_keys($rules) as $k): ?><option value="<?= $k ?>"><?= ucwords(str_replace('_', ' ', $k)) ?></option><?php endforeach; ?>
                                 </select>
                             </div>
                             <div class="col-6">
                                 <label class="form-label">Kategori Arus Kas</label>
                                 <select name="kategori_arus_kas" id="f_arus_kas" class="form-select form-select-sm">
-                                    <option value="Operasi">Operasi</option>
-                                    <option value="Investasi">Investasi</option>
-                                    <option value="Pendanaan">Pendanaan</option>
-                                    <option value="Abaikan">Abaikan</option>
+                                    <option value="">-- Otomatis --</option>
+                                    <?php foreach($arus_kas_opts as $a): ?><option value="<?= $a ?>"><?= ucwords(str_replace('_', ' ', $a)) ?></option><?php endforeach; ?>
                                 </select>
                             </div>
                         </div>
