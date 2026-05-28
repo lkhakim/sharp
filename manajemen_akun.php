@@ -30,6 +30,34 @@ try {
     $wp = ['nama' => 'WP Tidak Ditemukan'];
 }
 
+
+
+// Ambil aturan kategori dari fungsi klasifikasiAkun secara dinamis untuk dropdown
+$rules = [
+    'piutang'=>['PIUTANG JANGKA PANJANG','BEBAN DIBAYAR DI MUKA','PIUTANG RAGU-RAGU','PIUTANG LAIN-LAIN','PIUTANG USAHA PIHAK YANG MEMPUNYAI HUBUNGAN ISTIMEWA','PIUTANG USAHA PIHAK KETIGA','PIUTANG','BAYAR DIMUKA','UANG MUKA PEMBELIAN','PIUTANG USAHA'],
+    'utang_bank'=>['UTANG BANK','PINJAMAN BANK','HUTANG BANK','HUTANG BUNGA','BAGIAN HUTANG JANGKA PANJANG YANG JATUH TEMPO DALAM TAHUN BERJALAN'],
+    'utang'=>['UTANG','HUTANG','KEWAJIBAN','PINJAMAN','HUTANG USAHA','HUTANG PAJAK','HUTANG DEVIDEN','BIAYA YANG MASIH HARUS DIBAYAR','UANG MUKA PELANGGAN','KEWAJIBAN LANCAR LAINNYA','KEWAJIBAN PAJAK','KEWAJIBAN TIDAK LANCAR LAINNYA'],
+    'pembelian' => ['PEMBELIAN', 'PEMBELIAN BARANG', 'PEMBELIAN BAHAN', 'HARGA POKOK', 'HPP','BELI','BEBAN POKOK PENJUALAN','BEBAN POKOK PRODUKSI'],
+    'persediaan_akhir' => ['PERSEDIAAN AKHIR', 'SALDO AKHIR PERSEDIAAN', 'SALDO BARANG DAGANGAN - AKHIR', 'SALDO PERSEDIAAN AKHIR', 'SALDO PERSEDIAAN - AKHIR', 'SALDO AKHIR PERSEDIAAN', 'SALDO AKHIR BARANG DAGANGAN', 'SALDO AKHIR PERSEDIAAN BARANG DAGANGAN', 'SALDO AKHIR PERSEDIAAN BAHAN'],
+    'persediaan_awal' => ['PERSEDIAAN AWAL', 'SALDO AWAL PERSEDIAAN', 'SALDO AWAL BARANG DAGANGAN', 'SALDO PERSEDIAAN AWAL', 'SALDO PERSEDIAAN - AWAL', 'SALDO AWAL PERSEDIAAN', 'SALDO AWAL PERSEDIAAN BARANG DAGANGAN', 'SALDO AWAL PERSEDIAAN BAHAN', 'SALDO AWAL BARANG DAGANGAN','SALDO BARANG DAGANGAN - AWAL'],
+    'persediaan'=>['PERSEDIAAN'],
+    'aset_tetap'=>['AKTIVA TIDAK LANCAR LAINNYA','AKTIVA TETAP LAINNYA','TANAH DAN BANGUNAN','AKUM. PENYUSUTAN','AKUMULASI PENYUSUTAN','TANAH','BANGUNAN','ASET TETAP','KENDARAAN'],
+    'modal'=>['MODAL','LABA DITAHAN','SAHAM','DEVIDEN','MODAL SAHAM','AGIO','TAMBAHAN MODAL DISETOR','LABA DITAHAN','EKUITAS'],
+    'pendapatan_lain'=>['PENDAPATAN LAIN','JASA GIRO','DILUAR USAHA','PENGHASILAN LAIN','MANFAAT PAJAK','PENGHASILAN/(BEBAN) LAIN','BAGIAN LABA (RUGI) PERUSAHAAN ASOSIASI','PENDAPATAN NON OPERASIONAL','PENDAPATAN BUNGA','PENDAPATAN SEWA','PENDAPATAN ROYALTI','PENDAPATAN DIVIDEN','PENGHASILAN DI LUAR USAHA','PENDAPATAN LUAR USAHA','PENGHASILAN LUAR USAHA'],
+    'beban_lain'=>['BEBAN BUNGA','BEBAN ADM','BEBAN PAJAK','BIAYA ADMINISTRASI','BIAYA ADM','BIAYA BUNGA','BIAYA LUAR USAHA','BEBAN DILUAR USAHA','BEBAN NON OPERASIONAL','BIAYA DILUAR USAHA','BEBAN DILUAR USAHA','PAJAK','BEBAN (MANFAAT) PAJAK PENGHASILAN','BEBAN PAJAK PENGHASILAN','BEBAN PAJAK PENGHASILAN BADAN','BEBAN PAJAK PENGHASILAN PASAL 21','BEBAN PAJAK PENGHASILAN PASAL 23','BEBAN PAJAK PENGHASILAN PASAL 25','BEBAN PAJAK PENGHASILAN PASAL 26'],
+    'peredaran_usaha'=>['JUAL','PENJUALAN','OMSET','PENJUALAN BERSIH','PENJUALAN NETTO','PENJUALAN USAHA','PENJUALAN DAGANG','PENJUALAN PRODUK','PENJUALAN JASA','PENGHASILAN USAHA','PENGHASILAN JASA','PENDAPATAN USAHA','PENDAPATAN JASA','PENGHASILAN'],
+    'beban_gaji'=>['GAJI','UPAH','HONOR','BONUS','TUNJANGAN','REMUNERASI','BIAYA KARYAWAN','BEBAN KARYAWAN'],
+    'beban_usaha'=>['BEBAN USAHA','SEWA','LISTRIK','TELEPON','INTERNET','BIAYA','BEBAN UMUM DAN ADMINISTRASI','BEBAN PENJUALAN','BEBAN MARKETING','BEBAN PROMOSI','BEBAN PENYULUHAN','BEBAN R&D','BEBAN PENELITIAN DAN PENGEMBANGAN','BEBAN PERIKLANAN','BEBAN PERJALANAN DINAS','BEBAN KONSULTASI','BEBAN PROFESIONAL','BEBAN ASURANSI','BEBAN LANGGANAN','BEBAN KEPERLUAN KANTOR','BEBAN PENGIRIMAN','BEBAN ANGKUTAN','BEBAN PENYIMPANAN','BEBAN PENGEMASAN', 'BIAYA KANTOR','BIAYA PERJALANAN DINAS','BIAYA KONSULTASI','BIAYA PROFESIONAL','BIAYA ASURANSI','BIAYA LANGGANAN','BIAYA KEPERLUAN KANTOR','BIAYA PENGIRIMAN','BIAYA ANGKUTAN','BIAYA PENYIMPANAN','BIAYA PENGEMASAN','BEBAN UMUM DAN ADMINSTRASI'],
+    'penyusutan'=>['PENYUSUTAN','AMORTISASI','DEPRESIASI'],
+    'koreksi_fiskal_positif'=>['FISKAL POSITIF','KOREKSI PENYUSUTAN','KOREKSI PERSEDIAAN','KOREKSI ASET','KOREKSI AKTIVA','KOREKSI PENDAPATAN','KOREKSI OMSET'],
+    'koreksi_fiskal_negatif'=>['FISKAL NEGATIF','PENGHASILAN FINAL','HIBAH','WARISAN','BUKAN OBJEK PAJAK','PTKP','KOREKSI BIAYA','KOREKSI BEBAN'],
+    'kas'=>['KAS','BANK','KAS DAN SETARA KAS'],
+    'aset_lancar'=>['AKTIVA LANCAR LAINNYA','ASET LANCAR','INVESTASI SEMENTARA'],
+    'aset_tidak_berwujud'=>['AKUM. AMORTISASI','AKUMULASI AMORTISASI','HARTA TIDAK BERWUJUD','AKTIVA PAJAK TANGGUHAN']    
+];
+$arus_kas_opts = ['arus_kas_investasi', 'arus_kas_pendanaan', 'arus_kas_operasi_masuk', 'arus_kas_operasi_keluar', 'abaikan'];
+
+
 // Handler POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
@@ -58,13 +86,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Fallback untuk kode
                 if (empty($kode)) {
                     $mapping = [
-                        'kas' => '1-1000', 'piutang' => '1-2000', 'aset_lancar' => '1-3000',
+                        'kas' => '1-1000', 'piutang' => '1-2000', 'aset_lancar' => '1-3000', 'persediaan'=>'1-6000',
                         'aset_tetap' => '1-4000', 'aset_tidak_berwujud' => '1-5000',
                         'utang' => '2-1000', 'utang_bank' => '2-2000',
                         'modal' => '3-1000',
                         'peredaran_usaha' => '4-1000', 'pendapatan_lain' => '4-2000',
-                        'pembelian' => '5-1000', 'beban_gaji' => '6-1000', 'beban_usaha' => '6-2000', 'beban_lain' => '6-3000',
-                        'penyusutan' => '6-4000'
+                        'pembelian' => '5-1000', 'persediaan_akhir' => '5-9999', 'persediaan_awal' => '5-0000',
+                        'beban_gaji' => '6-1000', 'beban_usaha' => '6-2000', 'beban_lain' => '6-3000',
+                        'penyusutan' => '6-4000',
+                        'koreksi_fiskal_positif'=>'7-9000',
+                        'koreksi_fiskal_negatif'=> '8-9000'
                     ];
                     $kode = $mapping[$kategori_akun] ?? '9-9999';
                 }
@@ -246,32 +277,7 @@ try {
                             <label class="form-label">Kode Akun</label>
                             <input type="text" name="kode_akun" id="f_kode" class="form-control form-control-sm"  placeholder="-- Otomatis --">
                         </div>
-<?php 
-// Ambil aturan kategori dari fungsi klasifikasiAkun secara dinamis untuk dropdown
-$rules = [
-    'piutang'=>['PIUTANG JANGKA PANJANG','BEBAN DIBAYAR DI MUKA','PIUTANG RAGU-RAGU','PIUTANG LAIN-LAIN','PIUTANG USAHA PIHAK YANG MEMPUNYAI HUBUNGAN ISTIMEWA','PIUTANG USAHA PIHAK KETIGA','PIUTANG','BAYAR DIMUKA','UANG MUKA PEMBELIAN','PIUTANG USAHA'],
-    'utang_bank'=>['UTANG BANK','PINJAMAN BANK','HUTANG BANK','HUTANG BUNGA','BAGIAN HUTANG JANGKA PANJANG YANG JATUH TEMPO DALAM TAHUN BERJALAN'],
-    'utang'=>['UTANG','HUTANG','KEWAJIBAN','PINJAMAN','HUTANG USAHA','HUTANG PAJAK','HUTANG DEVIDEN','BIAYA YANG MASIH HARUS DIBAYAR','UANG MUKA PELANGGAN','KEWAJIBAN LANCAR LAINNYA','KEWAJIBAN PAJAK','KEWAJIBAN TIDAK LANCAR LAINNYA'],
-    'pembelian' => ['PEMBELIAN', 'PEMBELIAN BARANG', 'PEMBELIAN BAHAN', 'HARGA POKOK', 'HPP','BELI','BEBAN POKOK PENJUALAN','BEBAN POKOK PRODUKSI'],
-    'persediaan_akhir' => ['PERSEDIAAN AKHIR', 'SALDO AKHIR PERSEDIAAN'],
-    'persediaan_awal' => ['PERSEDIAAN AWAL', 'SALDO AWAL PERSEDIAAN'],
-    'persediaan'=>['PERSEDIAAN'],
-    'aset_tetap'=>['AKTIVA TIDAK LANCAR LAINNYA','AKTIVA TETAP LAINNYA','TANAH DAN BANGUNAN','AKUM. PENYUSUTAN','AKUMULASI PENYUSUTAN','TANAH','BANGUNAN','ASET TETAP','KENDARAAN'],
-    'modal'=>['MODAL','LABA DITAHAN','SAHAM','DEVIDEN','MODAL SAHAM','AGIO','TAMBAHAN MODAL DISETOR','LABA DITAHAN','EKUITAS'],
-    'pendapatan_lain'=>['PENDAPATAN LAIN','JASA GIRO','DILUAR USAHA','PENGHASILAN LAIN','MANFAAT PAJAK','PENGHASILAN/(BEBAN) LAIN','BAGIAN LABA (RUGI) PERUSAHAAN ASOSIASI','PENDAPATAN NON OPERASIONAL','PENDAPATAN BUNGA','PENDAPATAN SEWA','PENDAPATAN ROYALTI','PENDAPATAN DIVIDEN','PENGHASILAN DI LUAR USAHA','PENDAPATAN LUAR USAHA','PENGHASILAN LUAR USAHA'],
-    'peredaran_usaha'=>['JUAL','PENJUALAN','OMSET','PENJUALAN BERSIH','PENJUALAN NETTO','PENJUALAN USAHA','PENJUALAN DAGANG','PENJUALAN PRODUK','PENJUALAN JASA','PENGHASILAN USAHA','PENGHASILAN JASA','PENDAPATAN USAHA','PENDAPATAN JASA','PENGHASILAN'],
-    'beban_lain'=>['BEBAN BUNGA','BEBAN ADM','BEBAN PAJAK','BIAYA ADMINISTRASI','BIAYA ADM','BIAYA BUNGA','BIAYA LUAR USAHA','BEBAN DILUAR USAHA','BEBAN NON OPERASIONAL','BIAYA DILUAR USAHA','BEBAN DILUAR USAHA','PAJAK'],
-    'beban_gaji'=>['GAJI','UPAH','HONOR','BONUS','TUNJANGAN','REMUNERASI','BIAYA KARYAWAN','BEBAN KARYAWAN'],
-    'beban_usaha'=>['BEBAN USAHA','SEWA','LISTRIK','TELEPON','INTERNET','BIAYA','BEBAN UMUM DAN ADMINISTRASI'],
-    'penyusutan'=>['PENYUSUTAN','AMORTISASI','DEPRESIASI'],
-    'koreksi_fiskal_positif'=>['FISKAL POSITIF','KOREKSI PENYUSUTAN','KOREKSI PERSEDIAAN','KOREKSI ASET','KOREKSI AKTIVA','KOREKSI PENDAPATAN','KOREKSI OMSET'],
-    'koreksi_fiskal_negatif'=>['FISKAL NEGATIF','PENGHASILAN FINAL','HIBAH','WARISAN','BUKAN OBJEK PAJAK','PTKP','KOREKSI BIAYA','KOREKSI BEBAN'],
-    'kas'=>['KAS','BANK','KAS DAN SETARA KAS'],
-    'aset_lancar'=>['AKTIVA LANCAR LAINNYA','ASET LANCAR','INVESTASI SEMENTARA'],
-    'aset_tidak_berwujud'=>['AKUM. AMORTISASI','AKUMULASI AMORTISASI','HARTA TIDAK BERWUJUD','AKTIVA PAJAK TANGGUHAN']    
-];
-$arus_kas_opts = ['arus_kas_investasi', 'arus_kas_pendanaan', 'arus_kas_operasi_masuk', 'arus_kas_operasi_keluar', 'abaikan'];
-?>
+
                         <div class="row g-2 mb-3">
                             <div class="col-6">
                                 <label class="form-label">Kategori Akun</label>
@@ -501,23 +507,21 @@ $arus_kas_opts = ['arus_kas_investasi', 'arus_kas_pendanaan', 'arus_kas_operasi_
         // ... existing aiFile logic ...
     }
 
-    // Auto-detect classification
-    $('#f_nama').on('blur', function() {
-        const nama = $(this).val();
+    // Auto-detect classification with Vanilla JS
+    document.getElementById('f_nama').addEventListener('blur', function() {
+        const nama = this.value;
         if (nama.length > 3) {
-            $.get('api/api_klasifikasi.php', { nama: nama }, function(data) {
-                if (data.kategori) $('#f_kategori').val(data.kategori);
-                if (data.arus_kas) $('#f_arus_kas').val(data.arus_kas);
-                if (data.jenis) $('#f_jenis').val(data.jenis);
-                if (data.kode_suggest && !$('#f_kode').val()) $('#f_kode').val(data.kode_suggest);
-            });
+            fetch('api/api_klasifikasi.php?nama=' + encodeURIComponent(nama))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.kategori) document.getElementById('f_kategori').value = data.kategori;
+                    if (data.arus_kas) document.getElementById('f_arus_kas').value = data.arus_kas;
+                    if (data.jenis) document.getElementById('f_jenis').value = data.jenis;
+                    if (data.kode_suggest) document.getElementById('f_kode').value = data.kode_suggest;
+                })
+                .catch(err => console.error('Classification error:', err));
         }
     });
-</script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    // Re-initialize Lucide after dynamic content (if needed)
-    $(document).ajaxStop(function() { lucide.createIcons(); });
 </script>
 </body>
 </html>
