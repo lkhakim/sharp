@@ -25,7 +25,7 @@ if (!$wp) {
 }
 
 // Fetch Accounts from mapping_akun
-$stmt = $db->prepare("SELECT * FROM mapping_akun WHERE npwp = ? AND tahun = ?");
+$stmt = $db->prepare("SELECT * FROM mapping_akun WHERE npwp = ? AND tahun = ? ORDER BY kode_akun ASC");
 $stmt->execute([$npwp, $tahun]);
 $accounts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -56,31 +56,33 @@ $totals = [
 foreach ($accounts as $acc) {
     $cat = $acc['kategori_akun'];
     $nom = (float)$acc['nominal'];
-    $jenis = $acc['jenis']; // DEBIT or KREDIT
+    $jenis = strtoupper($acc['jenis']); // DEBIT or KREDIT
 
     // Rugi Laba
     if (in_array($cat, ['peredaran_usaha', 'pendapatan_lain'])) {
         $data['pendapatan'][] = $acc;
         $totals['pendapatan'] += ($jenis == 'KREDIT' ? $nom : -$nom);
-    } elseif (in_array($cat, ['pembelian', 'persediaan_awal', 'persediaan_akhir'])) {
+    } elseif (in_array($cat, ['pembelian', 'persediaan_awal', 'persediaan_akhir', 'hpp'])) {
         $data['hpp'][] = $acc;
         if ($cat == 'persediaan_akhir') {
-            $totals['hpp'] -= ($jenis == 'DEBIT' ? $nom : -$nom);
+            // Persediaan akhir mengurangi HPP
+            $totals['hpp'] -= ($jenis == 'KREDIT' ? $nom : $nom);
         } else {
-            $totals['hpp'] += ($jenis == 'DEBIT' ? $nom : -$nom);
+            $totals['hpp'] += ($jenis == 'DEBIT' ? $nom : $nom);
         }
     } elseif (in_array($cat, ['beban_gaji', 'beban_usaha', 'penyusutan', 'beban_lain'])) {
         $data['beban'][] = $acc;
         $totals['beban'] += ($jenis == 'DEBIT' ? $nom : -$nom);
     } 
     // Neraca
-    elseif (in_array($cat, ['kas', 'piutang', 'persediaan', 'aset_lancar'])) {
+    elseif (in_array($cat, ['kas', 'bank', 'piutang', 'persediaan', 'aset_lancar'])) {
         $data['aktiva']['lancar'][] = $acc;
         $totals['aktiva'] += ($jenis == 'DEBIT' ? $nom : -$nom);
-    } elseif (in_array($cat, ['aset_tetap', 'aset_tidak_berwujud'])) {
+    } elseif (in_array($cat, ['aset_tetap', 'aset_tidak_berwujud', 'akumulasi_penyusutan'])) {
         $data['aktiva']['tetap'][] = $acc;
+        // Akumulasi penyusutan adalah contra-asset (KREDIT)
         $totals['aktiva'] += ($jenis == 'DEBIT' ? $nom : -$nom);
-    } elseif (in_array($cat, ['utang', 'utang_bank'])) {
+    } elseif (in_array($cat, ['utang', 'utang_bank', 'utang_pendek', 'utang_panjang'])) {
         $data['pasiva']['utang'][] = $acc;
         $totals['pasiva'] += ($jenis == 'KREDIT' ? $nom : -$nom);
     } elseif ($cat == 'modal') {
@@ -99,7 +101,7 @@ $laba_bersih = $laba_kotor - $totals['beban'];
 $total_pasiva_final = $totals['pasiva'] + $laba_bersih;
 $selisih = $totals['aktiva'] - $total_pasiva_final;
 
-function toRp($n) {
+function toRp(float $n) {
     return number_format($n, 0, ',', '.');
 }
 ?>
@@ -260,7 +262,9 @@ function toRp($n) {
                                 <?php foreach($data['aktiva']['tetap'] as $acc): ?>
                                     <tr>
                                         <td class="label ps-3"><?= htmlspecialchars($acc['nama_akun']) ?></td>
-                                        <td class="value"><?= toRp($acc['nominal']) ?></td>
+                                        <td class="value">
+                                            <?= ($acc['kategori_akun'] == 'akumulasi_penyusutan' ? '(' . toRp($acc['nominal']) . ')' : toRp($acc['nominal'])) ?>
+                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
 
