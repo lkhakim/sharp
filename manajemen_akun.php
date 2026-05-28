@@ -507,21 +507,45 @@ try {
         // ... existing aiFile logic ...
     }
 
-    // Auto-detect classification with Vanilla JS
-    document.getElementById('f_nama').addEventListener('blur', function() {
-        const nama = this.value;
-        if (nama.length > 3) {
-            fetch('api/api_klasifikasi.php?nama=' + encodeURIComponent(nama))
-                .then(response => response.json())
-                .then(data => {
-                    if (data.kategori) document.getElementById('f_kategori').value = data.kategori;
-                    if (data.arus_kas) document.getElementById('f_arus_kas').value = data.arus_kas;
-                    if (data.jenis) document.getElementById('f_jenis').value = data.jenis;
-                    if (data.kode_suggest) document.getElementById('f_kode').value = data.kode_suggest;
-                })
-                .catch(err => console.error('Classification error:', err));
-        }
-    });
+    // Auto-detect classification with Vanilla JS (Real-time with Debounce)
+    let autoSuggestTimeout;
+    const fNama = document.getElementById('f_nama');
+    const fKategori = document.getElementById('f_kategori');
+    const fArusKas = document.getElementById('f_arus_kas');
+    const fJenis = document.getElementById('f_jenis');
+    const fKode = document.getElementById('f_kode');
+
+    if (fNama) {
+        fNama.addEventListener('input', function() {
+            clearTimeout(autoSuggestTimeout);
+            const nama = this.value.trim();
+            if (nama.length >= 2) { // Mulai deteksi setelah 2 karakter (misal: "Kas")
+                autoSuggestTimeout = setTimeout(() => {
+                    fetch('api/api_klasifikasi.php?nama=' + encodeURIComponent(nama))
+                        .then(response => {
+                            if (!response.ok) throw new Error('Network response was not ok');
+                            return response.json();
+                        })
+                        .then(data => {
+                            // Update Selects with explicit value matching
+                            if (data.kategori) fKategori.value = data.kategori;
+                            if (data.arus_kas) fArusKas.value = data.arus_kas;
+                            if (data.jenis) fJenis.value = data.jenis;
+                            
+                            // Sugesti Kode Akun
+                            if (data.kode_suggest && (!fKode.value || fKode.value === '-- Otomatis --' || fKode.dataset.auto === 'true')) {
+                                fKode.value = data.kode_suggest;
+                                fKode.dataset.auto = 'true';
+                            }
+                        })
+                        .catch(err => console.error('Auto-classification error:', err));
+                }, 200); // Debounce lebih cepat (200ms) untuk kesan riil-time
+            }
+        });
+
+        // Tandai jika user mengubah kode secara manual agar tidak ditimpa otomatis
+        fKode.addEventListener('input', () => fKode.dataset.auto = 'false');
+    }
 </script>
 </body>
 </html>
