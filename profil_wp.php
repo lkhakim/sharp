@@ -142,7 +142,7 @@ function toRpShort(float $num) {
             <div></div>    
             <div class="d-flex gap-2">
                 <select class="form-select border-0 shadow-sm" style="width: 200px;" onchange="location.href='?npwp=<?= $npwp ?>&tahun='+this.value">
-                    <?php for($y=date('Y'); $y>=2022; $y--): ?>
+                    <?php for($y=date('Y'); $y>=2020; $y--): ?>
                         <option value="<?= $y ?>" <?= $tahun == $y ? 'selected' : '' ?>>Tahun <?= $y ?></option>
                     <?php endfor; ?>
                 </select>
@@ -196,7 +196,7 @@ function toRpShort(float $num) {
             <!-- Risk Score Card -->
             <div class="col-xl-4 col-md-6">
                 <div class="glass-card p-4 h-100 text-center d-flex flex-column align-items-center justify-content-center">
-                    <div class="metric-label mb-3">Overall Risk Profile</div>
+                    <div class="metric-label mb-3">Total Skor Risiko</div>
                     <?php 
                     
                         $color = var_export($level_risiko == 'TINGGI' ? 'var(--risk-high)' : ($level_risiko == 'SEDANG' ? 'var(--risk-medium)' : 'var(--risk-low)'), true);
@@ -205,10 +205,10 @@ function toRpShort(float $num) {
                     <div class="risk-ring mb-3">
                         <div class="value <?= $score_class ?>"><?= $skor_final ?></div>
                         <svg class="position-absolute" width="80" height="80">
-                            <circle cx="40" cy="40" r="37" fill="transparent" stroke="<?= trim($color, "'") ?>" stroke-width="6" stroke-dasharray="<?= ($risk_score/100)*232 ?> 232" transform="rotate(-90 40 40)"></circle>
+                            <circle cx="40" cy="40" r="37" fill="transparent" stroke="<?= trim($color, "'") ?>" stroke-width="6" stroke-dasharray="<?= ($skor_final/100)*232 ?> 232" transform="rotate(-90 40 40)"></circle>
                         </svg>
                     </div>
-                    <h4 class="fw-bold <?= $score_class ?> m-0"><?= $level_risiko ?> RISK</h4>
+                    <h4 class="fw-bold <?= $score_class ?> m-0">RISIKO <?= $level_risiko ?></h4>
                     <p class="text-muted small mt-2">Berdasarkan Analisa Risiko & Validasi Lapangan</p>
                     <div class="mt-3 d-flex gap-2">
                         <a href="jalankan_analisa.php?npwp=<?= $wp['npwp'] ?>&tahun=<?= $tahun ?>" class="btn btn-primary btn-sm px-3 fw-bold">Proses Analisa</a>
@@ -304,6 +304,47 @@ function toRpShort(float $num) {
                                         <div class="small fw-bold text-muted">Status: Non-PKP</div>
                                     <?php endif; ?>
                                 </div>
+                            </div>
+
+                            <!-- AI Business Process Section -->
+                            <hr class="my-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold m-0"><i data-lucide="brain-circuit" class="me-2 text-primary" style="width:18px;"></i>AI Business Insight (BMC)</h6>
+                                <button class="btn btn-xs btn-outline-primary fw-bold" id="btnUpdateBisnis" onclick="generateBusinessProcess()">
+                                    <i data-lucide="refresh-cw" class="me-1" style="width:12px;"></i> Update Insight
+                                </button>
+                            </div>
+
+                            <div id="aiBisnisContent">
+                                <?php 
+                                    $bisnis = json_decode($wp['proses_bisnis'] ?? '', true);
+                                    if ($bisnis): 
+                                ?>
+                                    <div class="row g-3">
+                                        <?php 
+                                        $labels = [
+                                            'segmentasi_pasar' => 'Segmentasi Pasar', 'proposisi_nilai' => 'Proposisi Nilai',
+                                            'saluran' => 'Saluran (Channels)', 'hubungan_pelanggan' => 'Hubungan Pelanggan',
+                                            'sumber_pendapatan' => 'Sumber Pendapatan', 'sumber_daya_utama' => 'Sumber Daya Utama',
+                                            'mitra_utama' => 'Mitra Utama', 'struktur_biaya' => 'Struktur Biaya', 'pesaing' => 'Pesaing Utama'
+                                        ];
+                                        foreach($labels as $key => $lbl): 
+                                        ?>
+                                        <div class="col-md-4">
+                                            <div class="p-2 border rounded bg-light h-100">
+                                                <div class="metric-label mb-1" style="font-size: 0.6rem;"><?= $lbl ?></div>
+                                                <div class="small fw-semibold" style="line-height: 1.3; font-size: 0.75rem;"><?= htmlspecialchars($bisnis[$key] ?? 'N/A') ?></div>
+                                            </div>
+                                        </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="text-center py-4 bg-light rounded-3 border-dashed">
+                                        <i data-lucide="sparkles" class="text-primary mb-2" style="width:32px; height:32px;"></i>
+                                        <p class="small text-muted mb-3">Belum ada profil proses bisnis untuk KLU ini.</p>
+                                        <button class="btn btn-primary btn-sm fw-bold px-4" onclick="generateBusinessProcess()">Generate via Gemini AI</button>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -403,7 +444,14 @@ function toRpShort(float $num) {
                                                     ['l'=>'Ada Aktivitas', 'v'=>$audit['Ada_aktivitas']],
                                                     ['l'=>'Aset Terlihat', 'v'=>$audit['Aset_terlihat']],
                                                     ['l'=>'Ada Pembukuan', 'v'=>$audit['Ada_pembukuan']],
-                                                    ['l'=>'Fiktif?', 'v'=>$audit['Alamat_fiktif'], 'inv'=>true],
+                                                    ['l'=>'Pembukuan Rapi', 'v'=>$audit['Pembukuan_rapi']],
+                                                    ['l'=>'Faktur Tersimpan', 'v'=>$audit['Faktur_tersimpan']],
+                                                    ['l'=>'PIC Menguasai', 'v'=>$audit['PIC_menguasai']],
+                                                    ['l'=>'Penjelasan Wajar', 'v'=>$audit['Penjelasan_wajar']],
+                                                    ['l'=>'Pegawai Sesuai SPT', 'v'=>$audit['Pegawai_sesuai_SPT']],
+                                                    ['l'=>'Alamat Fiktif?', 'v'=>$audit['Alamat_fiktif'], 'inv'=>true],
+                                                    ['l'=>'Kantor Sewa?', 'v'=>$audit['Kantor_virtual_sewa'], 'inv'=>true],
+                                                    ['l'=>'WP Resisten?', 'v'=>$audit['Tidak_kooperatif'], 'inv'=>true]         
                                                 ];
                                                 foreach($chks as $c):
                                                     $isTrue = $c['v'] == 1;
@@ -417,7 +465,7 @@ function toRpShort(float $num) {
                                                 <?php endforeach; ?>
                                             </div>
                                             <div class="metric-label">Auditor's Note:</div>
-                                            <p class="small mb-0 mt-1">"<?= htmlspecialchars($audit['catatan'] ?: 'N/A') ?>"</p>
+                                            <div class="small text-dark mb-3 bg-warning p-2 rounded">'<?= htmlspecialchars($audit['catatan'] ?: 'N/A') ?>'</div>
                                         </div>
                                     </div>
                                 </div>
@@ -435,11 +483,41 @@ function toRpShort(float $num) {
             <!-- Right Sidebar Map -->
             <div class="col-lg-4">
                 <div class="glass-card p-4 h-100">
-                    <h6 class="fw-bold mb-3"><i data-lucide="map-pin" class="me-2 text-danger"></i>Geographic Identity</h6>
+                    <h6 class="fw-bold mb-3"><i data-lucide="map-pin" class="me-2 text-danger"></i>Geographic Identity & Geofencing</h6>
                     <div id="map-360" class="shadow-sm border"></div>
                     <div class="mt-4">
-                        <div class="metric-label">Registered Coordinates</div>
-                        <div class="fw-bold small text-muted"><?= $wp['lat_npwp'] ?? '-' ?>, <?= $wp['lng_npwp'] ?? '-' ?></div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <div class="metric-label">Registered Coordinates</div>
+                                <div class="fw-bold small text-muted"><?= $wp['lat_npwp'] ?? '-' ?>, <?= $wp['lng_npwp'] ?? '-' ?></div>
+                            </div>
+                            <?php if($audit && !empty($audit['lat_kegiatan'])): ?>
+                                <div class="text-end">
+                                    <div class="metric-label">Geofence Gap</div>
+                                    <div id="geofence-gap-val" class="fw-bold text-danger">Calculating...</div>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        
+                        <div class="p-3 bg-light rounded-3 mb-3">
+                            <div class="metric-label mb-2">Validation Status</div>
+                            <?php if($audit): ?>
+                                <div class="d-flex align-items-center gap-2">
+                                    <i data-lucide="check-circle-2" class="text-success" style="width:16px"></i>
+                                    <span class="small fw-bold">Verified on <?= date('d/m/Y', strtotime($audit['created_at'])) ?></span>
+                                </div>
+                                <div class="mt-2">
+                                    <span class="badge bg-primary rounded-pill" style="font-size: 0.65rem;">GEO-TAGGED</span>
+                                    <span class="badge bg-<?= $audit['Alamat_sesuai'] ? 'success' : 'danger' ?> rounded-pill" style="font-size: 0.65rem;"><?= $audit['Alamat_sesuai'] ? 'ALAMAT SESUAI' : 'ALAMAT TIDAK SESUAI' ?></span>
+                                </div>
+                            <?php else: ?>
+                                <div class="d-flex align-items-center gap-2 text-muted">
+                                    <i data-lucide="alert-circle" style="width:16px"></i>
+                                    <span class="small fw-bold">No Field Data Available</span>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
                         <hr>
                         <div class="metric-label">Tax Office (KPP)</div>
                         <div class="fw-bold">KPP Pratama XXX [<?= $wp['kode_kpp'] ?>]</div>
@@ -460,6 +538,16 @@ function toRpShort(float $num) {
 <script>
     lucide.createIcons();
 
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c; 
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const lat = parseFloat(<?= $wp['lat_npwp'] ?: '0'; ?>);
         const lng = parseFloat(<?= $wp['lng_npwp'] ?: '0'; ?>);
@@ -470,8 +558,35 @@ function toRpShort(float $num) {
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
                 attribution: '© OpenStreetMap' 
             }).addTo(map);
-            L.marker([lat, lng]).addTo(map).bindPopup('<b><?= htmlspecialchars($wp['nama']); ?></b>').openPopup();
             
+            const redIcon = L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+            });
+
+            L.marker([lat, lng], {icon: redIcon}).addTo(map).bindPopup('<b>Registered: <?= htmlspecialchars($wp['nama']); ?></b>').openPopup();
+            
+            <?php if($audit && !empty($audit['lat_kegiatan'])): ?>
+                const latAuditor = parseFloat(<?= $audit['lat_kegiatan'] ?>);
+                const lngAuditor = parseFloat(<?= $audit['lng_kegiatan'] ?>);
+                
+                const blueIcon = L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+                });
+
+                L.marker([latAuditor, lngAuditor], {icon: blueIcon}).addTo(map).bindPopup('<b>Last Audit Point</b>');
+                const polyline = L.polyline([[lat, lng], [latAuditor, lngAuditor]], {color: '#3b82f6', weight: 2, dashArray: '5, 10'}).addTo(map);
+                map.fitBounds(polyline.getBounds(), {padding: [50, 50]});
+
+                const distKm = calculateDistance(lat, lng, latAuditor, lngAuditor);
+                const distText = distKm < 1 ? Math.round(distKm * 1000) + " m" : distKm.toFixed(2) + " km";
+                const gapEl = document.getElementById('geofence-gap-val');
+                if(gapEl) gapEl.innerText = distText;
+            <?php endif; ?>
+
             // Re-render map when tab changes (to fix leaflet grey tiles)
             document.querySelectorAll('button[data-bs-toggle="pill"]').forEach(btn => {
                 btn.addEventListener('shown.bs.tab', () => map.invalidateSize());
@@ -480,6 +595,66 @@ function toRpShort(float $num) {
             mapDiv.innerHTML = `<div class="d-flex align-items-center justify-content-center h-100 bg-light rounded text-muted">Coordinates Unavailable</div>`;
         }
     });
+
+    async function generateBusinessProcess() {
+        const btn = document.getElementById('btnUpdateBisnis');
+        const container = document.getElementById('aiBisnisContent');
+        const originalHtml = btn.innerHTML;
+        
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Analyzing...';
+        container.innerHTML = `
+            <div class="text-center py-5">
+                <div class="spinner-grow text-primary mb-3"></div>
+                <h6 class="fw-bold text-primary">Gemini AI sedang merumuskan Model Bisnis...</h6>
+                <p class="small text-muted">Menganalisa sektor: <?= htmlspecialchars($wp['nama_klasifikasi_usaha']) ?></p>
+            </div>
+        `;
+
+        try {
+            const formData = new FormData();
+            formData.append('npwp', '<?= $npwp ?>');
+            formData.append('nama_klu', '<?= addslashes($wp['nama_klasifikasi_usaha']) ?>');
+
+            const response = await fetch('api/api_generate_bisnis.php', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                const data = result.data;
+                const labels = {
+                    segmentasi_pasar: 'Segmentasi Pasar', proposisi_nilai: 'Proposisi Nilai',
+                    saluran: 'Saluran (Channels)', hubungan_pelanggan: 'Hubungan Pelanggan',
+                    sumber_pendapatan: 'Sumber Pendapatan', sumber_daya_utama: 'Sumber Daya Utama',
+                    mitra_utama: 'Mitra Utama', struktur_biaya: 'Struktur Biaya', pesaing: 'Pesaing Utama'
+                };
+
+                let html = '<div class="row g-3">';
+                for (const [key, lbl] of Object.entries(labels)) {
+                    html += `
+                        <div class="col-md-4">
+                            <div class="p-2 border rounded bg-light h-100">
+                                <div class="metric-label mb-1" style="font-size: 0.6rem;">${lbl}</div>
+                                <div class="small fw-semibold" style="line-height: 1.3; font-size: 0.75rem;">${data[key] || 'N/A'}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+                container.innerHTML = html;
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            } else {
+                alert("AI Error: " + result.message);
+                location.reload();
+            }
+        } catch (error) {
+            alert("Connection error to Gemini API.");
+            location.reload();
+        }
+    }
 </script>
 </body>
 </html>
