@@ -48,6 +48,7 @@ $rules = [
     'peredaran_usaha'=>['JUAL','PENJUALAN','OMSET','PENJUALAN BERSIH','PENJUALAN NETTO','PENJUALAN USAHA','PENJUALAN DAGANG','PENJUALAN PRODUK','PENJUALAN JASA','PENGHASILAN USAHA','PENGHASILAN JASA','PENDAPATAN USAHA','PENDAPATAN JASA','PENGHASILAN'],
     'beban_gaji'=>['GAJI','UPAH','HONOR','BONUS','TUNJANGAN','REMUNERASI','BIAYA KARYAWAN','BEBAN KARYAWAN'],
     'beban_usaha'=>['BEBAN USAHA','SEWA','LISTRIK','TELEPON','INTERNET','BIAYA','BEBAN UMUM DAN ADMINISTRASI','BEBAN PENJUALAN','BEBAN MARKETING','BEBAN PROMOSI','BEBAN PENYULUHAN','BEBAN R&D','BEBAN PENELITIAN DAN PENGEMBANGAN','BEBAN PERIKLANAN','BEBAN PERJALANAN DINAS','BEBAN KONSULTASI','BEBAN PROFESIONAL','BEBAN ASURANSI','BEBAN LANGGANAN','BEBAN KEPERLUAN KANTOR','BEBAN PENGIRIMAN','BEBAN ANGKUTAN','BEBAN PENYIMPANAN','BEBAN PENGEMASAN', 'BIAYA KANTOR','BIAYA PERJALANAN DINAS','BIAYA KONSULTASI','BIAYA PROFESIONAL','BIAYA ASURANSI','BIAYA LANGGANAN','BIAYA KEPERLUAN KANTOR','BIAYA PENGIRIMAN','BIAYA ANGKUTAN','BIAYA PENYIMPANAN','BIAYA PENGEMASAN','BEBAN UMUM DAN ADMINSTRASI'],
+    'akumulasi_penyusutan'=>['AKUMULASI PENYUSUTAN','AKUMULASI AMORTISASI','AKUMULASI DEPRESIASI','AKUM. PENYUSUTAN','AKUM. AMORTISASI','AKUM. DEPRESIASI','AKM. PENYUSUTAN','AKM. AMORTISASI','AKM. DEPRESIASI'],
     'penyusutan'=>['PENYUSUTAN','AMORTISASI','DEPRESIASI'],
     'koreksi_fiskal_positif'=>['FISKAL POSITIF','KOREKSI PENYUSUTAN','KOREKSI PERSEDIAAN','KOREKSI ASET','KOREKSI AKTIVA','KOREKSI PENDAPATAN','KOREKSI OMSET'],
     'koreksi_fiskal_negatif'=>['FISKAL NEGATIF','PENGHASILAN FINAL','HIBAH','WARISAN','BUKAN OBJEK PAJAK','PTKP','KOREKSI BIAYA','KOREKSI BEBAN'],
@@ -87,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (empty($kode)) {
                     $mapping = [
                         'kas' => '1-1000', 'piutang' => '1-2000', 'aset_lancar' => '1-3000', 'persediaan'=>'1-6000',
-                        'aset_tetap' => '1-4000', 'aset_tidak_berwujud' => '1-5000',
+                        'aset_tetap' => '1-4000', 'aset_tidak_berwujud' => '1-5000', 'akumulasi_penyusutan' => '1-9000',
                         'utang' => '2-1000', 'utang_bank' => '2-2000',
                         'modal' => '3-1000',
                         'peredaran_usaha' => '4-1000', 'pendapatan_lain' => '4-2000',
@@ -173,6 +174,39 @@ try {
     $stmt = $db->prepare("SELECT * FROM mapping_akun WHERE npwp = ? AND tahun = ? ORDER BY kode_akun ASC");
     $stmt->execute([$npwp_aktif, $tahun_aktif]);
     $list_akun = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Kalkulasi Balance Aktiva & Passiva
+    $total_aktiva = 0;
+    $total_passiva = 0;
+    $total_pendapatan = 0;
+    $total_beban = 0;
+
+    $aktiva_plus = ['kas', 'bank', 'piutang', 'persediaan', 'aset_lancar', 'aset_tetap', 'aset_tidak_berwujud', 'persediaan_akhir'];
+    $aktiva_minus = ['akumulasi_penyusutan'];
+    $passiva_cats = ['utang', 'utang_bank', 'modal'];
+    $income_cats = ['peredaran_usaha', 'pendapatan_lain'];
+    $expense_cats = ['pembelian', 'beban_gaji', 'beban_usaha', 'beban_lain', 'penyusutan', 'persediaan_awal'];
+
+    foreach ($list_akun as $a) {
+        $nom = (float)$a['nominal'];
+        $cat = $a['kategori_akun'];
+        
+        if (in_array($cat, $aktiva_plus)) {
+            $total_aktiva += $nom;
+        } elseif (in_array($cat, $aktiva_minus)) {
+            $total_aktiva -= $nom;
+        } elseif (in_array($cat, $passiva_cats)) {
+            $total_passiva += $nom;
+        } elseif (in_array($cat, $income_cats)) {
+            $total_pendapatan += $nom;
+        } elseif (in_array($cat, $expense_cats)) {
+            $total_beban += $nom;
+        }
+    }
+    $laba_bersih = $total_pendapatan - $total_beban;
+    $passiva_final = $total_passiva + $laba_bersih;
+    $is_balanced = abs($total_aktiva - $passiva_final) < 0.01;
+
 } catch (Exception $e) {
     $list_akun = [];
 }
@@ -250,6 +284,33 @@ try {
                         <a href="laporan_keuangan.php?npwp=<?= $npwp_aktif ?>&tahun=<?= $tahun_aktif ?>" class="btn btn-primary btn-sm fw-bold">
                             <i data-lucide="file-text" class="inline me-1" style="width:16px;"></i> Lihat Laporan Keuangan
                         </a>
+                    </div>
+                </div>
+
+                <div class="card card-custom p-3 bg-white mb-3">
+                    <h6 class="fw-bold m-0 text-dark mb-3">Ringkasan Balance</h6>
+                    <div class="small">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Total Aktiva:</span>
+                            <span class="fw-bold">Rp <?= number_format($total_aktiva, 0, ',', '.') ?></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Total Passiva:</span>
+                            <span class="fw-bold">Rp <?= number_format($total_passiva, 0, ',', '.') ?></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 border-bottom pb-1">
+                            <span>Laba (Rugi) Berjalan:</span>
+                            <span class="fw-bold <?= $laba_bersih >= 0 ? 'text-success' : 'text-danger' ?>">
+                                Rp <?= number_format($laba_bersih, 0, ',', '.') ?>
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between fw-bold mb-3">
+                            <span>Status Balance:</span>
+                            <span class="<?= $is_balanced ? 'text-success' : 'text-danger' ?>">
+                                <i data-lucide="<?= $is_balanced ? 'check-circle' : 'alert-circle' ?>" class="inline" style="width:14px;"></i>
+                                <?= $is_balanced ? 'BALANCE' : 'TIDAK SEIMBANG' ?>
+                            </span>
+                        </div>
                     </div>
                 </div>
 
